@@ -515,3 +515,10 @@ Acc_Get(Cmd, ChildPath="", ChildID=0, WinTitle="", WinText="", ExcludeTitle="", 
 	if Acc_Error()
 		throw Exception(ErrorLevel,-1)
 }
+
+PathRelativePathTo(from,to){
+	VarSetCapacity(pszPath,MAX_PATH:=260)
+	If DllCall("Shlwapi\PathRelativePathTo","PTR",&pszPath,"STR",from,"UInt",InStr(from,"D")?FILE_ATTRIBUTE_DIRECTORY:=16:0,"Str",To,"UInt",InStr(to,"D")?FILE_ATTRIBUTE_DIRECTORY:0)
+		Return StrGet(&pszPath)
+	else return -1
+}
