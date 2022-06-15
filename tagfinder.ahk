@@ -1,13 +1,14 @@
 #singleinstance
 #Include .\toolFunc.ahk
-#Include .\json2.ahk
-rOnly := 1
-rsltList := []
+; #Include .\json2.ahk
+#Include .\tagfileops.ahk
+
+global rOnly := 1
+global rsltList := []
+global tags := {}
 ; tags := json2("filetag.json")
 
 Gui, New
-
-
 Gui, Add, Text, y10 r1 x3 vTag , 内容:
 Gui, Add, Edit, y10 r1 x+10 w200 vToSearch ys 
 Gui, Add, Button, y10 gCheckS +default ys, 查找
@@ -24,9 +25,9 @@ Gui, Add, Text, x+20 vTagFileName, %A_WorkingDir%
 Gui, Add, Text, y10 x750 r1, 文件：
 Gui, Add, Text, y10 x+20 r1 w200 vShowFileName, 
 Gui, Add, Text, y+10 x750 r1, Tags:
-Gui, Add, Edit, y+5 x750 r5 w300 readOnly vChosenTag, chosen tags
+Gui, Add, Edit, y+5 x750 r5 w300 readOnly vChosenTag, 
 Gui, Add, Text, y+20 x750 r1, 说明：
-Gui, Add, Edit, y+5 x750 r25 w300 readOnly vChosenDesc, chosen description
+Gui, Add, Edit, y+5 x750 r25 w300 readOnly vChosenDesc, 
 
 Gui, Add, Button, y+5 gToggleEdit, 编辑\取消
 Gui, Add, Button, x+100 gSave,保存
@@ -34,7 +35,31 @@ Gui, Add, Button, x+100 gSave,保存
 Gui, Show
 return
 
+lockEdit(){
+	global rOnly
+	guicontrol, +readOnly,ChosenTag
+	guicontrol, +readOnly,ChosenDesc
+	rOnly := 1
+	return
+}
+
+
+Save:
+	lockEdit()
+	guicontrolget,thepath,,showFileName
+	guicontrolget,tag,,chosenTag
+	guicontrolget,desc,,chosenDesc
+	global tags
+	tags[thepath] := {tag:tag, desc:desc}
+	_:=saveTags()
+	gosub CheckS
+	return
+
 CheckS:
+	lockEdit()
+	global rsltList
+
+	rOnly := 1
 	l:=makeList()
 	guicontrolget,searchTag,,ToSearch
 	rsltList := []
@@ -49,22 +74,18 @@ CheckS:
 			}
 		}
 	}
-
-	; for k,v in rsltList
-	; {
-	; 	p :=v[1] . ":" . v[2]
-	; 	msgbox % p
-	; }
 	gosub FillList
 	return
 
 FillList:
+	global rsltList
 	Gui, ListView, ResultList
 	LV_Delete()
 	for i,v in rsltList
 	{
 		LV_Add("",v[3], v[1],v[2])
 	}
+
 	return
 
 
@@ -72,11 +93,12 @@ ResultList:
 	{
 		If NOT ErrorLevel
 		{
-			if (A_GuiEvent == "Normal")
+			if (A_GuiEvent == "Normal" or A_GuiEvent == "K")
 			{
-				LV_GetText(tag, A_EventInfo, 3)
-				LV_GetText(desc, A_EventInfo, 1)
-				LV_GetText(thepath, A_EventInfo, 2)
+				rowN := LV_GetNext()
+				LV_GetText(tag, rowN, 3)
+				LV_GetText(desc, rowN, 1)
+				LV_GetText(thepath, rowN, 2)
 
 				guicontrol, , showFileName, %thepath%
 				guicontrol, , chosenTag, %tag%
@@ -95,6 +117,7 @@ ResultList:
 
 
 ToggleEdit:
+	global rOnly
 	if rOnly
 	{
 		guicontrol, -readOnly,ChosenTag
@@ -107,8 +130,7 @@ ToggleEdit:
 		rOnly := 1
 	}
 	return
-Save:
-	return
+
 
 GuiClose:
 	; msgbox bye
@@ -138,9 +160,17 @@ getFiles(folder){
 	}
 	return allFile
 }
+
 getTags(){
-	tags := json2("filetag.json")
+	; tags := json2("filetag.json")
+	global tags
+	tags := readTagFile("filetag.tag")
 	return tags
+}
+saveTags(){
+	global tags
+	writeTagFile("filetag.tag", tags)
+	return
 }
 
 makeList(){
