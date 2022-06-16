@@ -20,11 +20,17 @@ readTagFile(fileName){
 		fileReadLine, v,  %fileName%, %A_Index%
 		if ErrorLevel
 			break
+
 		v := StrReplace(v, ">>>>", "")
 		v := StrReplace(v, "@n@", "`n")
+
 		if(strlen(v) > 1){
 			d :=StrSplit(v, "{<>}")
-			rslt[d[1]] := {tag:d[2], desc:d[3]}
+			fileName:=d[1]
+			tag:=d[2]
+			desc := d[3]
+
+			rslt[fileName] := {tag:tag, desc:desc}
 		}
 	}
 	return rslt
