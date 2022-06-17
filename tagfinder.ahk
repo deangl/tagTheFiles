@@ -1,12 +1,13 @@
 #singleinstance
 #Include .\toolFunc.ahk
-; #Include .\json2.ahk
 #Include .\tagfileops.ahk
 
 global rOnly := 1
 global rsltList := []
 global tags := {}
-; tags := json2("filetag.json")
+global allFiles := []
+
+
 
 Gui, New
 Gui, Add, Text, y10 r1 x3 vTag , 内容:
@@ -33,6 +34,7 @@ Gui, Add, Edit, y+5 x750 r25 w300 readOnly vChosenDesc,
 
 Gui, Add, Button, y+5 gToggleEdit, 编辑\取消
 Gui, Add, Button, x+100 gSave,保存
+Gui, Add, Button, x+50 gRefresh,刷新文件
 
 Gui, Show
 return
@@ -46,6 +48,11 @@ lockEdit(){
 }
 
 
+
+Refresh:
+	global Allfiles
+	_ :=  getFiles(A_WorkingDir)
+	return
 Save:
 	lockEdit()
 	guicontrolget,thepath,,showFileName
@@ -68,10 +75,9 @@ CheckS:
 	rsltList := []
 	if (strlen(searchTag)>0)
 	{
-
 		for k,v in l
 		{
-			if (InStr(k, searchTag) or InStr(v["tag"], searchTag))
+			if(matchTag(searchTag, k) or matchTag(searchTag, v["tag"]))
 			{
 				rsltList.push([k, v["tag"], v["desc"]])
 			}
@@ -80,6 +86,26 @@ CheckS:
 	gosub FillList
 	guicontrol, , Stats, 查询完成
 	return
+
+matchTag(searchStr, Where){
+	; searchStr的语法是 str1&str2&str3|str4&str5|str6&str1 这样的；含义是先算“且”，再算“或”
+	orList := strsplit(searchStr, "|")
+	for iOr, orStr in orList{
+		andList := strsplit(orStr, "&")
+		o := True
+		for iAnd, andStr in andList{
+			if ( not(InStr(Where, andStr))){
+				o:=False
+				break
+			}
+		}
+		if o{
+			return True
+		}
+	}
+	return False
+}
+
 
 FillList:
 	global rsltList
@@ -100,13 +126,15 @@ ResultList:
 			if (A_GuiEvent == "Normal" or A_GuiEvent == "K")
 			{
 				rowN := LV_GetNext()
-				LV_GetText(tag, rowN, 3)
-				LV_GetText(desc, rowN, 1)
-				LV_GetText(thepath, rowN, 2)
+				if (rowN != 0){
+					LV_GetText(tag, rowN, 3)
+					LV_GetText(desc, rowN, 1)
+					LV_GetText(thepath, rowN, 2)
 
-				guicontrol, , showFileName, %thepath%
-				guicontrol, , chosenTag, %tag%
-				guicontrol, , chosenDesc, %desc%
+					guicontrol, , showFileName, %thepath%
+					guicontrol, , chosenTag, %tag%
+					guicontrol, , chosenDesc, %desc%
+				}
 			}
 			if (A_GuiEvent == "DoubleClick")
 			{
@@ -137,7 +165,6 @@ ToggleEdit:
 
 
 GuiClose:
-	; msgbox bye
 	ExitApp
 	return
 
@@ -146,52 +173,54 @@ GuiEscape:
 	return
 
 getFiles(folder){
-	allFile := []
+	guicontrol, , Stats, 查询文件列表中
+	global allFiles
+	allFiles := []
 	RunWait %ComSpec% /c dir /a-D /S /B %folder% | findstr /v /i "\.git\\" > tmptmp, ,hide
-	FileRead, raw, tmptmp
+	Loop{
+		fileReadLine, v,  tmptmp, %A_Index%
+		if ErrorLevel
+			break
+		allFiles.push(v)
+	}
 	FileDelete, tmptmp
-	allFile := strsplit(raw, "`n")
-	return allFile
+	guicontrol, , Stats, 查询文件列表完成
+	return allFiles
 }
 
 
 getTags(){
-	; tags := json2("filetag.json")
 	guicontrol, , Stats, 查询标签列表中
 	global tags
+
 	tags := readTagFile("filetag.tag")
-	; for k,v in tags{
-	; 	; t:=v["tag"]
-	; 	; msgbox % k . ":" . t
-	; }
+
 	guicontrol, , Stats, 查询标签列表完成
 	return tags
 }
+
 saveTags(){
 	guicontrol, , Stats, 保存中
 	global tags
+
 	writeTagFile("filetag.tag", tags)
+
 	guicontrol, , Stats, 保存完成
 	return
 }
 
 makeList(){
 	guicontrol, , Stats, 合并数据中
-	guicontrol, , Stats, 查询文件列表中
-	f := getFiles(A_WorkingDir)
-	guicontrol, , Stats, 查询文件列表完成
+	f := allFiles		;如果allFiles有数，就不要重新查了
+	if f.length() == 0
+		f:= getFiles(A_WorkingDir)
+
+
 	t := getTags()
-	for k,v in t{
-		j:=v["tag"]
-		msgbox % k . ":" . j
-	}
 	rslt := {}
 	for k,v in f
 	{
-		v := pathrelativepathto( A_WorkingDir . "\",v)
-		; msgbox % v
-		; r := t[v]["tag"]
-		; msgbox % r
+		v := pathrelativepathto( A_WorkingDir . "\_",v)
 		rslt[v] := t[v]
 	}
 	guicontrol, , Stats, 合并数据完成

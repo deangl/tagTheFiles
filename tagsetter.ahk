@@ -7,13 +7,13 @@ global allTags
 
 filePath = %1%
 tagFile := findTagFile(filePath)
-SplitPath, tagFile, OutFileName, tagFileFolder, 
+; SplitPath, tagFile, OutFileName, tagFileFolder, 
 
 
 if tagFile {
 	global allTags
 	allTags := readTagFile(tagFile)
-	filePath := pathrelativepathto(tagFileFolder,filePath)
+	filePath := pathrelativepathto(tagFile,filePath)
 	tag := allTags[filePath]["tag"]
 	desc := allTags[filePath]["desc"]
 
@@ -57,7 +57,6 @@ Save:
 
 findTagFile(filePath){
 	pathArr := strsplit(filePath, "\")
-
 	N := pathArr.length()
 
 	loop, %N%

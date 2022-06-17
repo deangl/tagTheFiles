@@ -1,6 +1,0 @@
-Windows Registry Editor Version 5.00
-[HKEY_CLASSES_ROOT\*\shell\tagthisfile]
-@="Tag This File"
-
-[HKEY_CLASSES_ROOT\*\shell\tagthisfile\command]
-@="D:\\git\\tagTheFiles\\dist\\tagSetter.exe %0"
