@@ -177,12 +177,19 @@ getFiles(folder){
 	global allFiles
 	allFiles := []
 	RunWait %ComSpec% /c dir /a-D /S /B %folder% | findstr /v /i "\.git\\" > tmptmp, ,hide
-	Loop{
-		fileReadLine, v,  tmptmp, %A_Index%
-		if ErrorLevel
-			break
-		allFiles.push(v)
+	guicontrol, , Stats, 处理列表中
+
+	fileRead, raw, tmptmp
+	for i,v in strsplit(raw, "`n"){
+		allFiles.push(substr(v, 1, strlen(v)-1))
 	}
+	; Loop{
+	; 	fileReadLine, v,  tmptmp, %A_Index%
+	; 	if ErrorLevel
+	; 		break
+	; 	allFiles.push(v)
+	; }
+	guicontrol, , Stats, 处理列表完成
 	FileDelete, tmptmp
 	guicontrol, , Stats, 查询文件列表完成
 	return allFiles

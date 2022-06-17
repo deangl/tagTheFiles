@@ -4,11 +4,8 @@
 global filePath
 global allTags
 
-
 filePath = %1%
 tagFile := findTagFile(filePath)
-; SplitPath, tagFile, OutFileName, tagFileFolder, 
-
 
 if tagFile {
 	global allTags
@@ -36,7 +33,6 @@ if tagFile {
 
 
 GuiClose:
-	; msgbox bye
 	ExitApp
 	return
 
