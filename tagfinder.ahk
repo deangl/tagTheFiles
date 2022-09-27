@@ -1,6 +1,7 @@
 #singleinstance
 #Include .\toolFunc.ahk
 #Include .\tagfileops.ahk
+#Include .\csv.ahk
 
 global rOnly := 1
 global rsltList := []
@@ -176,20 +177,38 @@ getFiles(folder){
 	guicontrol, , Stats, 查询文件列表中
 	global allFiles
 	allFiles := []
-	RunWait %ComSpec% /c dir /a-D /S /B %folder% | findstr /v /i "\.git\\" > tmptmp, ,hide
-	guicontrol, , Stats, 处理列表中
-
-	fileRead, raw, tmptmp
-	for i,v in strsplit(raw, "`n"){
-		allFiles.push(substr(v, 1, strlen(v)-1))
+	Process, Exist, Everything.exe
+	if !ErrorLevel = 0
+	; if 0
+	{
+		exeName := GetModuleExeName(ErrorLevel)
+		cmd := exeName . " -create-file-list tmptmp " .  folder
+		runwait %cmd%
+		CSV_load("tmptmp","csvdata",",")
+		col := CSV_readCol("csvdata", 1)
+		col := StrSplit(col,",")
+		for i,v in col
+		{
+			if (i>1 and not(instr(v, "\.git\")))
+			{
+				allFiles.push(v)
+			}
+		}
+		guicontrol, , Stats, 处理列表完成
 	}
-	; Loop{
-	; 	fileReadLine, v,  tmptmp, %A_Index%
-	; 	if ErrorLevel
-	; 		break
-	; 	allFiles.push(v)
-	; }
-	guicontrol, , Stats, 处理列表完成
+	else
+	{
+		RunWait %ComSpec% /c dir /a-D /S /B %folder% | findstr /v /i "\.git\\" > tmptmp, ,hide
+		fileRead, raw, tmptmp
+		guicontrol, , Stats, 处理列表中
+
+
+		for i,v in strsplit(raw, "`n"){
+			allFiles.push(substr(v, 1, strlen(v)-1))
+		}
+		guicontrol, , Stats, 处理列表完成
+	}
+
 	FileDelete, tmptmp
 	guicontrol, , Stats, 查询文件列表完成
 	return allFiles
@@ -232,4 +251,12 @@ makeList(){
 	}
 	guicontrol, , Stats, 合并数据完成
 	return rslt
+}
+
+GetModuleExeName(p_id) {
+
+	for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process where ProcessId=" p_id)
+
+		return process.ExecutablePath
+
 }
