@@ -1,0 +1,82 @@
+#Include .\toolFunc.ahk2
+#Include .\tagfileops.ahk2
+
+global filePath
+global allTags
+allTags := Map()
+global setterWindow
+
+filePath := A_Args[1]
+
+tagFile := findTagFile(filePath)
+
+if tagFile {
+	global allTags
+	global setterWindow
+	allTags := readTagFile(tagFile)
+	filePath := pathrelativepathto(tagFile,filePath)
+	tag := allTags.has(filePath)? allTags[filePath]["tag"]:""
+	desc :=allTags.has(filePath)? allTags[filePath]["desc"]:""
+	setterWindow := Gui()
+	setterWindow.add("Text", "y10 x10 r1", "文件：")
+	showFileName :=	setterWindow.add("Text", "y10 x+20 r1 w200 vShowFileName", filePath)
+	setterWindow.add("Text", "y+10 x10 r1", "Tags:")
+	chosenTag := setterWindow.add("Edit", "y+5 x10 r5 w300  vChosenTag", tag)
+	setterWindow.add("Text", "y+20 x10 r1", "说明：")
+	chosenDesc := setterWindow.add("Edit", "y+5 x10 r25 w300 vChosenDesc", desc)
+	saveButton := setterWindow.add("Button", "y+5 +default", "保存")
+	saveButton.OnEvent("click", Save)
+	setterWindow.add("Text", "y+5 x10", "tag文件位置：")
+	setterWindow.add("Text", "x+10", tagFile)
+	setterWindow.OnEvent("Close", setterWindowClose)
+	setterWindow.OnEvent("Escape", setterWindowClose)
+	setterWindow.Show
+	return
+}else{
+	msgbox("找不到 filetag.tag")
+	return
+}
+
+setterWindowClose(*){
+	ExitApp
+	return
+}
+
+
+Save(*){
+	global allTags
+	thepath := showFileName.value
+	tag := chosenTag.value
+	desc := chosenDesc.value
+	_ := Map()
+	_['tag'] := tag
+	_['desc'] := desc
+	allTags[thepath] := _
+	writeTagFile(tagFile, allTags)
+	ExitApp
+	return
+}
+
+findTagFile(filePath){
+	pathArr := strsplit(filePath, "\")
+	N := pathArr.Length
+
+	loop N
+	{
+		w := joinPath(pathArr, N-A_index) . "filetag.tag"
+		if FileExist(w){
+			return w
+		}
+	}
+	return 0
+}
+
+joinPath(pathArr, N){
+	r := ""
+	loop N
+	{
+		r := r . pathArr[A_index] . "\"
+	}
+	return r
+}
+

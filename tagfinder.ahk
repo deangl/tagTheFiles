@@ -253,10 +253,3 @@ makeList(){
 	return rslt
 }
 
-GetModuleExeName(p_id) {
-
-	for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process where ProcessId=" p_id)
-
-		return process.ExecutablePath
-
-}

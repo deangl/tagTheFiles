@@ -1,0 +1,59 @@
+#include toolFunc.ahk2
+
+readTagFile(fileName){
+	rslt := Map()
+	f := fileRead(fileName)
+	raw := strSplit(f, "`n")
+	for i,v in raw {
+		if substr(v, -1) != ">"
+		{
+			v := substr(v, 1, strlen(v)-1) ;去掉行末的^M
+		}
+		if substr(v, -4) == ">>>>"{
+			v := substr(v, 1, strlen(v)-4)
+		}
+		; v := StrReplace(v, ">>>>", "")
+		v := StrReplace(v, "@n@", "`n")
+		d :=StrSplit(v, "{<>}")
+		try{
+			fileName:=d[1]
+			tag:=d[2]
+			desc := d[3]
+		}
+		if tag{
+			_ := Map()
+			_["tag"] := tag
+			_["desc"] := desc
+			rslt[fileName] := _
+		}
+	}
+	return rslt
+}
+
+writeTagFile(fileName, data){
+	keyList := []
+	for k,v in data{
+		keyList.push(k)
+	}
+	keyList := SortStringArr(keyList)
+
+	raw := ""
+	for i,k in keyList{
+		if strlen(k) > 1{
+			raw := raw . k . "{<>}" . strreplace(data[k]["tag"], "`n", "@n@") . "{<>}"
+
+			if data[k].has("desc"){
+				d := strreplace(data[k]["desc"], "`n", "@n@")
+				raw := raw . d
+			}
+			raw := raw . ">>>>`n"
+		}
+	}
+	filedelete fileName
+	fileappend raw, fileName
+	msgbox("更新完成")
+	return
+}
+
+
+
