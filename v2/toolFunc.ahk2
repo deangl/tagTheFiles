@@ -52,8 +52,7 @@ SortStringArr(Arr){
 }
 
 
-; aaa := ["a", "gg", "pt", "b"]
-; bbb := SortStringArr(aaa)
-; for i,v in bbb{
-; 	msgbox(v)
-; }
+GetModuleExeName(p_id) {
+	for process in ComObjGet("winmgmts:").ExecQuery("Select * from Win32_Process where ProcessId=" p_id)
+		return process.ExecutablePath
+}

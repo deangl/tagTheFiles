@@ -1,7 +1,6 @@
 #SingleInstance
 #Include ".\toolFunc.ahk2"
 #Include ".\tagfileops.ahk2"
-; #Include ".\csv.ahk"
 
 global rOnly := 1
 global rsltList := []
@@ -12,16 +11,17 @@ global allFiles := []
 myGui := Gui()
 myGui.OnEvent("Close", GuiClose)
 myGui.OnEvent("Escape", GuiEscape)
-; myGui.New()
+
+
 ogcTextTag := myGui.Add("Text", "y10 r1 x3 vTag", "内容:")
 ogcEditToSearch := myGui.Add("Edit", "y10 r1 x+10 w200 vToSearch ys")
 ogcButton := myGui.Add("Button", "y10  +default ys", "查找")
 ogcButton.OnEvent("Click", CheckS.Bind("Normal"))
+
 ogcTextTF := myGui.Add("Text", "y10 x+5 vTF", "查找文件夹:")
 ogcTextTagFileName := myGui.Add("Text", "y10 x+20 vTagFileName", A_WorkingDir)
 
 ogcListViewshadowIDtags := myGui.Add("ListView", "x3 W720 r30 +AltSubmit", ["shadowID", "路径", "tags"])
-
 ogcListViewshadowIDtags.OnEvent("DoubleClick", ResultList.Bind("DoubleClick"))
 ogcListViewshadowIDtags.OnEvent("ItemFocus", ResultList.Bind("Normal"))
 
@@ -61,15 +61,15 @@ lockEdit(){
 
 
 Refresh(A_GuiEvent, GuiCtrlObj, Info, *)
-{ ; V1toV2: Added bracket
+{
 	global Allfiles
 	_ :=  getFiles(A_WorkingDir)
 	return
-} ; V1toV2: Added bracket before function
+} 
 
 
 Save(A_GuiEvent, GuiCtrlObj, Info, *)
-{ ; V1toV2: Added bracket
+{
 	lockEdit()
 	thepath := ogcTextshowFileName.Text
 	tag := ogcEditchosenTag.Text
@@ -82,10 +82,10 @@ Save(A_GuiEvent, GuiCtrlObj, Info, *)
 	_:=saveTags()
 	CheckS()
 	return
-} ; V1toV2: Added bracket before function
+} 
 
 CheckS(*)
-{ ; V1toV2: Added bracket
+{
 	ogcTextStats.Value := "查询结果中"
 	lockEdit()
 	global rsltList
@@ -99,7 +99,9 @@ CheckS(*)
 		for k,v in l
 		{
 			if type(v)='String'{
-				rsltList.push([k, "", ""])
+				if matchTag(searchTag, k){
+					rsltList.push([k, "", ""])
+				}
 			}else{
 				if(matchTag(searchTag, k) or matchTag(searchTag, v["tag"]))
 				{
@@ -111,10 +113,11 @@ CheckS(*)
 	FillList()
 	ogcTextStats.Value := "查询完成"
 	return
-} ; V1toV2: Added bracket before function
+}
 
 
 matchTag(searchStr, Where){
+	; 判断Where是否和searchStr的表述匹配
 	; searchStr的语法是 str1&str2&str3|str4&str5|str6&str1 这样的；含义是先算“且”，再算“或”
 	orList := strsplit(searchStr, "|")
 	for iOr, orStr in orList{
@@ -135,40 +138,36 @@ matchTag(searchStr, Where){
 
 
 FillList()
-{ ; V1toV2: Added bracket
+{
+	; 把全局已经准备好的rsltList刷入表格中
 	global rsltList
 	ogcListViewshadowIDtags.Delete()
 	for i,v in rsltList
 	{
 		ogcListViewshadowIDtags.Add("", v[3], v[1], v[2])
 	}
-
+	ogcListViewshadowIDtags.ModifyCol(3, "SortDesc")
 	return
-} ; V1toV2: Added bracket before function
-
+}
 
 ResultList(A_GuiEvent, GuiCtrlObj, Info, *)
 {
-	; If NOT ErrorLevel
-	If 1
+	if (A_GuiEvent == "Normal")
 	{
-		if (A_GuiEvent == "Normal" or A_GuiEvent == "K")
-		{
-			rowN := Info
-			if (rowN != 0){
-				tag := ogcListViewshadowIDtags.GetText(rowN, 3)
-				desc := ogcListViewshadowIDtags.GetText(rowN, 1)
-				thepath := ogcListViewshadowIDtags.GetText(rowN, 2)
-				ogcTextshowFileName.Value := thepath
-				ogcEditchosenTag.Value := tag
-				ogcEditchosenDesc.Value := desc
-			}
+		rowN := Info
+		if (rowN != 0){
+			tag := ogcListViewshadowIDtags.GetText(rowN, 3)
+			desc := ogcListViewshadowIDtags.GetText(rowN, 1)
+			thepath := ogcListViewshadowIDtags.GetText(rowN, 2)
+			ogcTextshowFileName.Value := thepath
+			ogcEditchosenTag.Value := tag
+			ogcEditchosenDesc.Value := desc
 		}
-		if (A_GuiEvent == "DoubleClick")
-		{
-			thepath := ogcListViewshadowIDtags.GetText(Info,2)
-			Run(thepath)
-		}
+	}
+	if (A_GuiEvent == "DoubleClick")
+	{
+		thepath := ogcListViewshadowIDtags.GetText(Info,2)
+		Run(thepath)
 	}
 
 	return
@@ -178,7 +177,7 @@ ResultList(A_GuiEvent, GuiCtrlObj, Info, *)
 
 
 ToggleEdit(A_GuiEvent, GuiCtrlObj, Info, *)
-{ ; V1toV2: Added bracket
+{
 	global rOnly
 	if rOnly
 	{
@@ -192,43 +191,44 @@ ToggleEdit(A_GuiEvent, GuiCtrlObj, Info, *)
 		rOnly := 1
 	}
 	return
-} ; V1toV2: Added bracket before function
+}
 
 
 GuiClose(*)
-{ ; V1toV2: Added bracket
+{
 	ExitApp()
 	return
-} ; V1toV2: Added Bracket before label
+}
 
 GuiEscape(*)
-{ ; V1toV2: Added bracket
+{
 	ExitApp()
 	return
-} ; V1toV2: Added bracket before function
+}
 
 getFiles(folder){
 	ogcTextStats.Value := "查询文件列表中"
 	global allFiles
 	allFiles := []
-	ErrorLevel := ProcessExist("Everything.exe")
-	; if !ErrorLevel = 0
-	if 0
+	hasEverything := ProcessExist("Everything.exe")
+	; if 0
+	if hasEverything
 	{
-		; exeName := GetModuleExeName(ErrorLevel)
-		; cmd := exeName . " -create-file-list tmptmp " .  folder
-		; RunWait(cmd)
-		; CSV_load("tmptmp","csvdata",",")
-		; col := CSV_readCol("csvdata", 1)
-		; col := StrSplit(col,",")
-		; for i,v in col
-		; {
-		; 	if (i>1 and not(InStr(v, "\.git\")))
-		; 	{
-		; 		allFiles.push(v)
-		; 	}
-		; }
-		; ogcTextStats.Value := "处理列表完成"
+		exeName := GetModuleExeName(hasEverything)
+		cmd := exeName . " -create-file-list tmptmp " .  folder
+		RunWait(cmd)
+		files := fileRead("tmptmp", "UTF-8")
+		files := strsplit(files, "`n")
+		for LineNumber,fileName in files{
+			if (LineNumber > 1 and not(InStr(fileName, "\.git\")) and strLen(fileName) > 1){
+				fileName := strsplit(fileName, ",")[1]
+				fileName := substr(fileName, 2, strlen(fileName) - 2)
+				allFiles.push(fileName)
+			}
+		}
+
+
+		ogcTextStats.Value := "处理列表完成"
 	}
 	else
 	{
