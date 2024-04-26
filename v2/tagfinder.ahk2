@@ -24,6 +24,7 @@ ogcTextTagFileName := myGui.Add("Text", "y10 x+20 vTagFileName", A_WorkingDir)
 ogcListViewshadowIDtags := myGui.Add("ListView", "x3 W720 r30 +AltSubmit", ["shadowID", "路径", "tags"])
 ogcListViewshadowIDtags.OnEvent("DoubleClick", ResultList.Bind("DoubleClick"))
 ogcListViewshadowIDtags.OnEvent("ItemFocus", ResultList.Bind("Normal"))
+ogcListViewshadowIDtags.OnEvent("ContextMenu", ResultList.Bind("ContextMenu"))
 
 ogcListViewshadowIDtags.ModifyCol(1, 0)
 ogcListViewshadowIDtags.ModifyCol(2, 500)
@@ -168,6 +169,12 @@ ResultList(A_GuiEvent, GuiCtrlObj, Info, *)
 	{
 		thepath := ogcListViewshadowIDtags.GetText(Info,2)
 		Run(thepath)
+	}
+
+	if(A_GuiEvent == "ContextMenu"){
+		thepath := ogcListViewshadowIDtags.GetText(Info,2)
+		SplitPath thepath,, &thedir
+		run("Explorer " . thedir)
 	}
 
 	return
