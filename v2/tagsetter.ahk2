@@ -1,3 +1,4 @@
+#SingleInstance Off
 #Include .\toolFunc.ahk2
 #Include .\tagfileops.ahk2
 
