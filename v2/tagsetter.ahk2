@@ -14,24 +14,33 @@ tagFile := findTagFile(filePath)
 if tagFile {
 	global allTags
 	global setterWindow
+	global showFileName
+	global chosenTag
+	global chosenDesc
+	global tagFile
+	
 	allTags := readTagFile(tagFile)
-	filePath := PathRelativePathTo(tagFile, filePath)
-	tag := allTags.has(filePath)? allTags[filePath]["tag"]:""
-	desc :=allTags.has(filePath)? allTags[filePath]["desc"]:""
+	; Get the directory containing the tag file to use as the base for relative path
+	tagDir := SubStr(tagFile, 1, InStr(tagFile, "\", , -1))
+	; Create a dummy file path in the tag directory to use with PathRelativePathTo
+	dummyFrom := tagDir . "dummy.txt"
+	relativePath := PathRelativePathTo(dummyFrom, filePath)
+	tag := allTags.has(relativePath)? allTags[relativePath]["tag"]:""
+	desc :=allTags.has(relativePath)? allTags[relativePath]["desc"]:""
 	setterWindow := Gui()
 	setterWindow.add("Text", "y10 x10 r1", "文件：")
-	showFileName :=	setterWindow.add("Text", "y10 x+20 r1 w200 vShowFileName", filePath)
+	showFileName :=	setterWindow.add("Text", "y10 x+20 r1 w200", relativePath)
 	setterWindow.add("Text", "y+10 x10 r1", "Tags:")
-	chosenTag := setterWindow.add("Edit", "y+5 x10 r5 w300  vChosenTag", tag)
+	chosenTag := setterWindow.add("Edit", "y+5 x10 r5 w300", tag)
 	setterWindow.add("Text", "y+20 x10 r1", "说明：")
-	chosenDesc := setterWindow.add("Edit", "y+5 x10 r25 w300 vChosenDesc", desc)
+	chosenDesc := setterWindow.add("Edit", "y+5 x10 r25 w300", desc)
 	saveButton := setterWindow.add("Button", "y+5 +default", "保存")
-	saveButton.OnEvent("click", Save)
+	saveButton.OnEvent("Click", Save)
 	setterWindow.add("Text", "y+5 x10", "tag文件位置：")
 	setterWindow.add("Text", "x+10", tagFile)
 	setterWindow.OnEvent("Close", setterWindowClose)
 	setterWindow.OnEvent("Escape", setterWindowClose)
-	setterWindow.Show
+	setterWindow.Show()
 	return
 }else{
 	msgbox("找不到 filetag.tag")
@@ -47,13 +56,18 @@ setterWindowClose(*){
 
 Save(*){
 	global allTags
-	thepath := showFileName.value
-	tag := chosenTag.value
-	desc := chosenDesc.value
-	_ := Map()
-	_['tag'] := tag
-	_['desc'] := desc
-	allTags[thepath] := _
+	global showFileName
+	global chosenTag
+	global chosenDesc
+	global tagFile
+	
+	thepath := showFileName.Text
+	tag := chosenTag.Value
+	desc := chosenDesc.Value
+	fileInfo := Map()
+	fileInfo['tag'] := tag
+	fileInfo['desc'] := desc
+	allTags[thepath] := fileInfo
 	writeTagFile(tagFile, allTags)
 	ExitApp
 	return
