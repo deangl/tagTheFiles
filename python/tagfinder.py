@@ -41,60 +41,86 @@ class TagFinder:
         self.dir_label = ttk.Label(search_frame, text=self.current_working_dir)
         self.dir_label.grid(row=0, column=4, padx=5)
         
-        # List view
+        # Main content frame with list on left and details on right
+        main_frame = ttk.Frame(self.root)
+        main_frame.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        
+        # List view on the left
+        list_frame = ttk.Frame(main_frame)
+        list_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        
         columns = ("shadowID", "路径", "tags")
-        self.list_view = ttk.Treeview(self.root, columns=columns, show="headings", height=20)
+        self.list_view = ttk.Treeview(list_frame, columns=columns, show="headings", height=20)
         self.list_view.heading("shadowID", text="shadowID")
         self.list_view.heading("路径", text="路径")
         self.list_view.heading("tags", text="tags")
         self.list_view.column("shadowID", width=0, stretch=False)
         self.list_view.column("路径", width=500)
         self.list_view.column("tags", width=200)
-        self.list_view.pack(pady=10, padx=10, fill=tk.BOTH, expand=True)
+        
+        # Add scrollbar to list view
+        list_scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.list_view.yview)
+        self.list_view.configure(yscrollcommand=list_scrollbar.set)
+        
+        self.list_view.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        list_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
         self.list_view.bind("<Double-1>", self.on_double_click)
         self.list_view.bind("<Button-3>", self.on_right_click)
         self.list_view.bind("<<TreeviewSelect>>", self.on_select)
         
-        # Status
+        # Details frame on the right
+        details_frame = ttk.Frame(main_frame)
+        details_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=(10, 0))
+        
+        # File info
+        file_frame = ttk.Frame(details_frame)
+        file_frame.pack(fill=tk.X, pady=(0, 10))
+        ttk.Label(file_frame, text="文件:").pack(side=tk.LEFT)
+        self.file_var = tk.StringVar()
+        self.file_label = ttk.Label(file_frame, textvariable=self.file_var, wraplength=300)
+        self.file_label.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
+        
+        # Tags
+        tag_frame = ttk.Frame(details_frame)
+        tag_frame.pack(fill=tk.X, pady=(0, 10))
+        ttk.Label(tag_frame, text="Tags:").pack(side=tk.TOP, anchor=tk.W)
+        # Add scrollbar to tag text
+        tag_text_frame = ttk.Frame(tag_frame)
+        tag_text_frame.pack(fill=tk.BOTH, expand=True)
+        self.tag_text = tk.Text(tag_text_frame, height=5, width=30)
+        tag_scrollbar = ttk.Scrollbar(tag_text_frame, orient=tk.VERTICAL, command=self.tag_text.yview)
+        self.tag_text.configure(yscrollcommand=tag_scrollbar.set)
+        self.tag_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        tag_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Description
+        desc_frame = ttk.Frame(details_frame)
+        desc_frame.pack(fill=tk.BOTH, expand=True)
+        ttk.Label(desc_frame, text="说明:").pack(side=tk.TOP, anchor=tk.W)
+        # Add scrollbar to description text
+        desc_text_frame = ttk.Frame(desc_frame)
+        desc_text_frame.pack(fill=tk.BOTH, expand=True)
+        self.desc_text = tk.Text(desc_text_frame, height=10, width=30)
+        desc_scrollbar = ttk.Scrollbar(desc_text_frame, orient=tk.VERTICAL, command=self.desc_text.yview)
+        self.desc_text.configure(yscrollcommand=desc_scrollbar.set)
+        self.desc_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
+        desc_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        
+        # Buttons
+        button_frame = ttk.Frame(details_frame)
+        button_frame.pack(pady=(10, 0))
+        ttk.Button(button_frame, text="编辑/取消", command=self.toggle_edit).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="保存", command=self.save).pack(side=tk.LEFT, padx=5)
+        ttk.Button(button_frame, text="刷新文件", command=self.refresh).pack(side=tk.LEFT, padx=5)
+        
+        # Status at the bottom
         status_frame = ttk.Frame(self.root)
         status_frame.pack(pady=5, padx=10, fill=tk.X)
         ttk.Label(status_frame, text="状态:").pack(side=tk.LEFT)
         self.status_var = tk.StringVar(value="就绪")
         self.status_label = ttk.Label(status_frame, textvariable=self.status_var)
         self.status_label.pack(side=tk.LEFT, padx=5)
-        
-        # Details frame
-        details_frame = ttk.Frame(self.root)
-        details_frame.pack(pady=10, padx=10, fill=tk.X)
-        
-        # File info
-        file_frame = ttk.Frame(details_frame)
-        file_frame.pack(fill=tk.X)
-        ttk.Label(file_frame, text="文件:").pack(side=tk.LEFT)
-        self.file_var = tk.StringVar()
-        self.file_label = ttk.Label(file_frame, textvariable=self.file_var)
-        self.file_label.pack(side=tk.LEFT, padx=5)
-        
-        # Tags
-        tag_frame = ttk.Frame(details_frame)
-        tag_frame.pack(fill=tk.X, pady=5)
-        ttk.Label(tag_frame, text="Tags:").pack(side=tk.LEFT, anchor=tk.N)
-        self.tag_text = tk.Text(tag_frame, height=5, width=50)
-        self.tag_text.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
-        
-        # Description
-        desc_frame = ttk.Frame(details_frame)
-        desc_frame.pack(fill=tk.X, pady=5)
-        ttk.Label(desc_frame, text="说明:").pack(side=tk.LEFT, anchor=tk.N)
-        self.desc_text = tk.Text(desc_frame, height=10, width=50)
-        self.desc_text.pack(side=tk.LEFT, padx=5, fill=tk.X, expand=True)
-        
-        # Buttons
-        button_frame = ttk.Frame(details_frame)
-        button_frame.pack(pady=10)
-        ttk.Button(button_frame, text="编辑/取消", command=self.toggle_edit).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="保存", command=self.save).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="刷新文件", command=self.refresh).pack(side=tk.LEFT, padx=5)
         
         # Set initial read-only state
         self.lock_edit()
