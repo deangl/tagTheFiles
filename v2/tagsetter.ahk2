@@ -15,7 +15,7 @@ if tagFile {
 	global allTags
 	global setterWindow
 	allTags := readTagFile(tagFile)
-	filePath := pathrelativepathto(tagFile,filePath)
+	filePath := PathRelativePathTo(tagFile, filePath)
 	tag := allTags.has(filePath)? allTags[filePath]["tag"]:""
 	desc :=allTags.has(filePath)? allTags[filePath]["desc"]:""
 	setterWindow := Gui()
