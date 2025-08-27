@@ -34,6 +34,8 @@ class TagFinder:
         self.search_var = tk.StringVar()
         self.search_entry = ttk.Entry(search_frame, textvariable=self.search_var, width=30)
         self.search_entry.grid(row=0, column=1, padx=5)
+        # Bind Enter key to trigger search
+        self.search_entry.bind('<Return>', lambda event: self.check_search())
         
         ttk.Button(search_frame, text="查找", command=self.check_search).grid(row=0, column=2, padx=5)
         
@@ -126,13 +128,13 @@ class TagFinder:
         self.lock_edit()
     
     def lock_edit(self):
-        self.tag_text.config(state=tk.DISABLED)
-        self.desc_text.config(state=tk.DISABLED)
+        self.tag_text.config(state=tk.DISABLED, background='#f0f0f0')
+        self.desc_text.config(state=tk.DISABLED, background='#f0f0f0')
         self.r_only = True
     
     def unlock_edit(self):
-        self.tag_text.config(state=tk.NORMAL)
-        self.desc_text.config(state=tk.NORMAL)
+        self.tag_text.config(state=tk.NORMAL, background='white')
+        self.desc_text.config(state=tk.NORMAL, background='white')
         self.r_only = False
     
     def toggle_edit(self):
