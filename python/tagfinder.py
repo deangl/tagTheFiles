@@ -176,7 +176,8 @@ class TagFinder:
             return tags
         
         try:
-            with open(filename, 'r', encoding='utf-8') as f:
+            # Use Windows default encoding
+            with open(filename, 'r', encoding='mbcs') as f:
                 content = f.read()
             
             for line in content.split('\n'):
@@ -320,7 +321,8 @@ class TagFinder:
         tag_file = os.path.join(self.current_working_dir, "filetag.tag")
         
         try:
-            with open(tag_file, 'w', encoding='utf-8') as f:
+            # Use Windows default encoding
+            with open(tag_file, 'w', encoding='mbcs') as f:
                 for file_path, info in sorted(self.tags.items()):
                     tag = info.get('tag', '').replace('\n', '@n@')
                     desc = info.get('desc', '').replace('\n', '@n@')
