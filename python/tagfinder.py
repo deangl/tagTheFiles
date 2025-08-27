@@ -254,14 +254,22 @@ class TagFinder:
         item = self.list_view.item(selection[0])
         values = item['values']
         if len(values) >= 3:
-            self.file_var.set(values[1])  # Path
+            file_path = values[1]
+            self.file_var.set(file_path)  # Path
+            
+            # Get the actual tag and description from the tags dictionary
+            # The file path in the list is relative to the working directory
+            tag_info = self.tags.get(file_path, {})
+            tag = tag_info.get('tag', '')
+            desc = tag_info.get('desc', '')
+            
             # Enable text widgets to update content
             self.tag_text.config(state=tk.NORMAL)
             self.desc_text.config(state=tk.NORMAL)
             self.tag_text.delete(1.0, tk.END)
-            self.tag_text.insert(1.0, values[2] if len(values) > 2 else "")  # Tag
+            self.tag_text.insert(1.0, tag)
             self.desc_text.delete(1.0, tk.END)
-            self.desc_text.insert(1.0, values[2] if len(values) > 2 else "")  # Description?
+            self.desc_text.insert(1.0, desc)
             self.lock_edit()
     
     def on_double_click(self, event):
