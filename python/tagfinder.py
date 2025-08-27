@@ -182,6 +182,7 @@ class TagFinder:
             
             for line in content.split('\n'):
                 line = line.strip()
+
                 if not line or not line.endswith('>>>>'):
                     continue
                 
@@ -199,7 +200,6 @@ class TagFinder:
                     tags[file_path] = {'tag': tag, 'desc': desc}
         except Exception as e:
             messagebox.showerror("错误", f"读取标签文件时出错: {str(e)}")
-        
         return tags
     
     def check_search(self):
