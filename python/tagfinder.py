@@ -167,7 +167,17 @@ class TagFinder:
     def get_tags(self):
         self.status_var.set("查询标签列表中")
         tag_file = os.path.join(self.current_working_dir, "filetag.tag")
-        self.tags = self.read_tag_file(tag_file)
+        # Read tags and convert all paths to relative paths
+        raw_tags = self.read_tag_file(tag_file)
+        self.tags = {}
+        for file_path, info in raw_tags.items():
+            try:
+                # Convert to relative path
+                rel_path = os.path.relpath(file_path, self.current_working_dir)
+                self.tags[rel_path] = info
+            except:
+                # If conversion fails, use the original path
+                self.tags[file_path] = info
         self.status_var.set("标签加载完成")
     
     def read_tag_file(self, filename):
@@ -283,11 +293,13 @@ class TagFinder:
         item = self.list_view.item(selection[0])
         values = item['values']
         if len(values) >= 2:
-            file_path = values[1]
+            # The path in the list is relative, so we need to make it absolute
+            rel_path = values[1]
+            abs_path = os.path.join(self.current_working_dir, rel_path)
             try:
-                os.startfile(file_path)
+                os.startfile(abs_path)
             except:
-                messagebox.showerror("错误", f"无法打开文件: {file_path}")
+                messagebox.showerror("错误", f"无法打开文件: {abs_path}")
     
     def on_right_click(self, event):
         item = self.list_view.identify_row(event.y)
@@ -298,8 +310,10 @@ class TagFinder:
         item_data = self.list_view.item(item)
         values = item_data['values']
         if len(values) >= 2:
-            file_path = values[1]
-            folder_path = os.path.dirname(file_path)
+            # The path in the list is relative, so we need to make it absolute
+            rel_path = values[1]
+            abs_path = os.path.join(self.current_working_dir, rel_path)
+            folder_path = os.path.dirname(abs_path)
             try:
                 os.startfile(folder_path)
             except:
@@ -312,7 +326,12 @@ class TagFinder:
         desc = self.desc_text.get(1.0, tk.END).strip()
         
         if file_path:
-            self.tags[file_path] = {'tag': tag, 'desc': desc}
+            # Ensure the path is relative
+            try:
+                rel_path = os.path.relpath(file_path, self.current_working_dir)
+                self.tags[rel_path] = {'tag': tag, 'desc': desc}
+            except:
+                self.tags[file_path] = {'tag': tag, 'desc': desc}
             self.save_tags()
             self.check_search()
     
@@ -326,6 +345,8 @@ class TagFinder:
                 for file_path, info in sorted(self.tags.items()):
                     tag = info.get('tag', '').replace('\n', '@n@')
                     desc = info.get('desc', '').replace('\n', '@n@')
+                    # Ensure paths are always written as relative to the current working directory
+                    # Since we've been using relative paths in self.tags, this should be fine
                     line = f"{file_path}{{<>}}{tag}{{<>}}{desc}>>>>\n"
                     f.write(line)
             self.status_var.set("保存完成")
