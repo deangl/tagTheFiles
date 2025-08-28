@@ -36,9 +36,17 @@ class TagSetter:
             tag_file_path = parent / "filetag.tag"
             if tag_file_path.exists():
                 self.tag_file = tag_file_path
-                # 计算相对路径
+                # 计算相对路径，以tag文件所在目录为基准
                 try:
+                    # 相对路径应该相对于tag文件所在目录
                     self.relative_path = os.path.relpath(self.file_path, parent)
+                    # 确保路径使用.\前缀
+                    if not self.relative_path.startswith('.\\'):
+                        # 如果路径不是以.\开头，检查是否需要添加
+                        # 如果路径已经是相对路径，但可能不是相对于当前目录
+                        # 我们想要相对于tag文件所在目录的路径
+                        # 为了与tagfinder.py保持一致，使用.\前缀
+                        self.relative_path = '.\\' + self.relative_path
                 except ValueError:
                     # 如果在不同驱动器上，使用绝对路径
                     self.relative_path = self.file_path
@@ -65,6 +73,12 @@ class TagSetter:
                 parts = line.split('{<>}')
                 if len(parts) >= 3:
                     file_path = parts[0]
+                    # 确保路径以.\开头
+                    if not file_path.startswith('.\\'):
+                        # 如果路径不是以.\开头，检查是否需要转换
+                        # 这里我们假设所有路径都应该相对于tag文件所在目录
+                        # 所以添加.\前缀
+                        file_path = '.\\' + file_path
                     tag = parts[1]
                     desc = parts[2]
                     # Restore newlines
@@ -116,13 +130,21 @@ class TagSetter:
         # 转义换行符
         tag_escaped = tag.replace('\n', '@n@')
         desc_escaped = desc.replace('\n', '@n@')
-        self.all_tags[self.relative_path] = {'tag': tag_escaped, 'desc': desc_escaped}
+        
+        # 确保相对路径以.\开头
+        relative_path = self.relative_path
+        if not relative_path.startswith('.\\'):
+            relative_path = '.\\' + relative_path
+        self.all_tags[relative_path] = {'tag': tag_escaped, 'desc': desc_escaped}
         
         # 写入文件，与tagfinder.py保持一致
         try:
             # 使用Windows默认编码
             with open(self.tag_file, 'w', encoding='mbcs') as f:
                 for path, info in sorted(self.all_tags.items()):
+                    # 确保路径以.\开头
+                    if not path.startswith('.\\'):
+                        path = '.\\' + path
                     tag_content = info.get('tag', '')
                     desc_content = info.get('desc', '')
                     line = f"{path}{{<>}}{tag_content}{{<>}}{desc_content}>>>>\n"
