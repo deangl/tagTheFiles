@@ -67,6 +67,8 @@ class TagFinder:
         self.search_entry.grid(row=0, column=1, padx=5)
         # Bind Enter key to trigger search
         self.search_entry.bind('<Return>', lambda event: self.check_search())
+        # Bind Down arrow to move focus to result list
+        self.search_entry.bind('<Down>', lambda event: self.focus_result_list())
         # Bind Alt+D to focus and select search entry
         self.root.bind('<Alt-d>', lambda event: self.focus_search_entry())
         self.root.bind('<Alt-D>', lambda event: self.focus_search_entry())
@@ -175,6 +177,15 @@ class TagFinder:
         """Focus on search entry and select its content"""
         self.search_entry.focus_set()
         self.search_entry.select_range(0, tk.END)
+    
+    def focus_result_list(self):
+        """Focus on the result list and select the first item if available"""
+        self.list_view.focus_set()
+        # Select the first item if the list is not empty
+        items = self.list_view.get_children()
+        if items:
+            self.list_view.selection_set(items[0])
+            self.list_view.focus(items[0])
     
     def toggle_edit(self):
         if self.r_only:
