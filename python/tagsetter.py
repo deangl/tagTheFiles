@@ -50,7 +50,8 @@ class TagSetter:
             return
         
         try:
-            with open(self.tag_file, 'r', encoding='utf-8') as f:
+            # 使用Windows默认编码
+            with open(self.tag_file, 'r', encoding='gbk') as f:
                 for line in f:
                     line = line.strip()
                     if not line:
@@ -62,6 +63,22 @@ class TagSetter:
                         tag = parts[1]
                         desc = parts[2] if len(parts) > 2 else ""
                         self.all_tags[path] = {'tag': tag, 'desc': desc}
+        except UnicodeDecodeError:
+            # 如果gbk解码失败，尝试utf-8
+            try:
+                with open(self.tag_file, 'r', encoding='utf-8') as f:
+                    for line in f:
+                        line = line.strip()
+                        if not line:
+                            continue
+                        parts = line.split('|', 2)
+                        if len(parts) >= 2:
+                            path = parts[0]
+                            tag = parts[1]
+                            desc = parts[2] if len(parts) > 2 else ""
+                            self.all_tags[path] = {'tag': tag, 'desc': desc}
+            except Exception as e:
+                messagebox.showerror("错误", f"读取标签文件时出错: {str(e)}")
         except FileNotFoundError:
             pass
         except Exception as e:
@@ -110,7 +127,8 @@ class TagSetter:
         
         # 写入文件
         try:
-            with open(self.tag_file, 'w', encoding='utf-8') as f:
+            # 使用Windows默认编码
+            with open(self.tag_file, 'w', encoding='gbk') as f:
                 for path, info in self.all_tags.items():
                     line = f"{path}|{info['tag']}|{info['desc']}\n"
                     f.write(line)
