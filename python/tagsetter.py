@@ -90,21 +90,27 @@ class TagSetter:
     
     def create_widgets(self):
         """创建界面组件"""
-        # 文件路径
-        ttk.Label(self.root, text="文件：").pack(pady=(10, 0), padx=10, anchor='w')
-        ttk.Label(self.root, text=self.relative_path).pack(pady=(5, 20), padx=10, anchor='w')
+        # 主框架
+        main_frame = ttk.Frame(self.root)
+        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        
+        # 文件路径 - 在同一行
+        file_frame = ttk.Frame(main_frame)
+        file_frame.pack(fill=tk.X, pady=(0, 20))
+        ttk.Label(file_frame, text="文件：").pack(side=tk.LEFT)
+        ttk.Label(file_frame, text=self.relative_path).pack(side=tk.LEFT, padx=5)
         
         # 标签
-        ttk.Label(self.root, text="Tags:").pack(pady=(0, 5), padx=10, anchor='w')
-        self.tag_entry = tk.Text(self.root, height=5, width=50)
-        self.tag_entry.pack(padx=10, fill='x')
+        ttk.Label(main_frame, text="Tags:").pack(anchor='w', pady=(0, 5))
+        self.tag_entry = tk.Text(main_frame, height=5)
+        self.tag_entry.pack(fill=tk.X, pady=(0, 20))
         # Bind Tab key to move focus to next widget
         self.tag_entry.bind('<Tab>', self.focus_next_widget)
         
         # 描述
-        ttk.Label(self.root, text="说明：").pack(pady=(20, 5), padx=10, anchor='w')
-        self.desc_entry = tk.Text(self.root, height=15, width=50)
-        self.desc_entry.pack(padx=10, fill='both', expand=True)
+        ttk.Label(main_frame, text="说明：").pack(anchor='w', pady=(0, 5))
+        self.desc_entry = tk.Text(main_frame, height=15)
+        self.desc_entry.pack(fill=tk.BOTH, expand=True)
         # Bind Tab key to move focus to next widget
         self.desc_entry.bind('<Tab>', self.focus_next_widget)
         
@@ -115,11 +121,13 @@ class TagSetter:
             self.desc_entry.insert('1.0', tag_info['desc'])
         
         # 保存按钮
-        ttk.Button(self.root, text="保存", command=self.save).pack(pady=20)
+        ttk.Button(main_frame, text="保存", command=self.save).pack(pady=20)
         
-        # tag文件位置
-        ttk.Label(self.root, text="tag文件位置：").pack(pady=(0, 5), padx=10, anchor='w')
-        ttk.Label(self.root, text=str(self.tag_file)).pack(pady=(0, 20), padx=10, anchor='w')
+        # tag文件位置 - 在同一行
+        tag_file_frame = ttk.Frame(main_frame)
+        tag_file_frame.pack(fill=tk.X, pady=(0, 10))
+        ttk.Label(tag_file_frame, text="tag文件位置：").pack(side=tk.LEFT)
+        ttk.Label(tag_file_frame, text=str(self.tag_file)).pack(side=tk.LEFT, padx=5)
         
         # 绑定事件
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
