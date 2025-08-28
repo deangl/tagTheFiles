@@ -36,6 +36,9 @@ class TagFinder:
         self.search_entry.grid(row=0, column=1, padx=5)
         # Bind Enter key to trigger search
         self.search_entry.bind('<Return>', lambda event: self.check_search())
+        # Bind Alt+D to focus and select search entry
+        self.root.bind('<Alt-d>', lambda event: self.focus_search_entry())
+        self.root.bind('<Alt-D>', lambda event: self.focus_search_entry())
         
         ttk.Button(search_frame, text="查找", command=self.check_search).grid(row=0, column=2, padx=5)
         
@@ -136,6 +139,11 @@ class TagFinder:
         self.tag_text.config(state=tk.NORMAL, background='white')
         self.desc_text.config(state=tk.NORMAL, background='white')
         self.r_only = False
+    
+    def focus_search_entry(self):
+        """Focus on search entry and select its content"""
+        self.search_entry.focus_set()
+        self.search_entry.select_range(0, tk.END)
     
     def toggle_edit(self):
         if self.r_only:
