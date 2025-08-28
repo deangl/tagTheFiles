@@ -131,6 +131,8 @@ class TagFinder:
         self.tag_text.configure(yscrollcommand=tag_scrollbar.set)
         self.tag_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         tag_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Bind Tab key to move focus to next widget
+        self.tag_text.bind('<Tab>', self.focus_next_widget)
         
         # Description
         desc_frame = ttk.Frame(details_frame)
@@ -144,6 +146,8 @@ class TagFinder:
         self.desc_text.configure(yscrollcommand=desc_scrollbar.set)
         self.desc_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         desc_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+        # Bind Tab key to move focus to next widget
+        self.desc_text.bind('<Tab>', self.focus_next_widget)
         
         # Buttons
         button_frame = ttk.Frame(details_frame)
@@ -186,6 +190,11 @@ class TagFinder:
         if items:
             self.list_view.selection_set(items[0])
             self.list_view.focus(items[0])
+    
+    def focus_next_widget(self, event):
+        """Move focus to next widget on Tab key press"""
+        event.widget.tk_focusNext().focus()
+        return "break"  # Prevent default Tab behavior
     
     def toggle_edit(self):
         if self.r_only:

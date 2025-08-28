@@ -98,11 +98,15 @@ class TagSetter:
         ttk.Label(self.root, text="Tags:").pack(pady=(0, 5), padx=10, anchor='w')
         self.tag_entry = tk.Text(self.root, height=5, width=50)
         self.tag_entry.pack(padx=10, fill='x')
+        # Bind Tab key to move focus to next widget
+        self.tag_entry.bind('<Tab>', self.focus_next_widget)
         
         # 描述
         ttk.Label(self.root, text="说明：").pack(pady=(20, 5), padx=10, anchor='w')
         self.desc_entry = tk.Text(self.root, height=15, width=50)
         self.desc_entry.pack(padx=10, fill='both', expand=True)
+        # Bind Tab key to move focus to next widget
+        self.desc_entry.bind('<Tab>', self.focus_next_widget)
         
         # 设置现有值
         if self.relative_path in self.all_tags:
@@ -158,6 +162,11 @@ class TagSetter:
         """关闭窗口"""
         self.root.destroy()
         sys.exit(0)
+    
+    def focus_next_widget(self, event):
+        """Move focus to next widget on Tab key press"""
+        event.widget.tk_focusNext().focus()
+        return "break"  # Prevent default Tab behavior
     
     def run(self):
         """运行应用程序"""
