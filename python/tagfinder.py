@@ -395,12 +395,19 @@ class TagFinder:
         desc = self.desc_text.get(1.0, tk.END).strip()
         
         if file_path:
-            # Ensure the path is relative
-            try:
-                rel_path = os.path.relpath(file_path, self.current_working_dir)
-                self.tags[rel_path] = {'tag': tag, 'desc': desc}
-            except:
-                self.tags[file_path] = {'tag': tag, 'desc': desc}
+            # Ensure the path starts with .\
+            if not file_path.startswith('.\\'):
+                try:
+                    # Make it relative to current working directory
+                    rel_path = os.path.relpath(file_path, self.current_working_dir)
+                    # Ensure it starts with .\
+                    if not rel_path.startswith('.\\'):
+                        rel_path = '.\\' + rel_path
+                    file_path = rel_path
+                except:
+                    # If conversion fails, add .\ prefix
+                    file_path = '.\\' + file_path
+            self.tags[file_path] = {'tag': tag, 'desc': desc}
             self.save_tags()
             self.check_search()
     
@@ -412,10 +419,11 @@ class TagFinder:
             # Use Windows default encoding
             with open(tag_file, 'w', encoding='mbcs') as f:
                 for file_path, info in sorted(self.tags.items()):
+                    # Ensure path starts with .\
+                    if not file_path.startswith('.\\'):
+                        file_path = '.\\' + file_path
                     tag = info.get('tag', '').replace('\n', '@n@')
                     desc = info.get('desc', '').replace('\n', '@n@')
-                    # Ensure paths are always written as relative to the current working directory
-                    # Since we've been using relative paths in self.tags, this should be fine
                     line = f"{file_path}{{<>}}{tag}{{<>}}{desc}>>>>\n"
                     f.write(line)
             self.status_var.set("保存完成")
