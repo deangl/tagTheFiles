@@ -221,12 +221,28 @@ class TagFinder:
         raw_tags = self.read_tag_file(tag_file)
         self.tags = {}
         for file_path, info in raw_tags.items():
-            try:
-                # Convert to relative path
-                rel_path = os.path.relpath(file_path, self.current_working_dir)
-                self.tags[rel_path] = info
-            except:
-                # If conversion fails, use the original path
+            # Ensure path starts with .\
+            if not file_path.startswith('.\\'):
+                # If the path doesn't start with .\, make it relative to the current working directory
+                try:
+                    # First, try to make it absolute by joining with current working directory
+                    # But since file_path might already be absolute, we need to check
+                    if os.path.isabs(file_path):
+                        # If it's absolute, make it relative
+                        rel_path = os.path.relpath(file_path, self.current_working_dir)
+                        # Ensure it starts with .\
+                        if not rel_path.startswith('.\\'):
+                            rel_path = '.\\' + rel_path
+                    else:
+                        # If it's not absolute, just add .\ prefix
+                        rel_path = '.\\' + file_path
+                    self.tags[rel_path] = info
+                except:
+                    # If conversion fails, add .\ prefix to the original path
+                    rel_path = '.\\' + file_path
+                    self.tags[rel_path] = info
+            else:
+                # Path already starts with .\, use as is
                 self.tags[file_path] = info
         self.status_var.set("标签加载完成")
     
@@ -252,6 +268,9 @@ class TagFinder:
                 parts = line.split('{<>}')
                 if len(parts) >= 3:
                     file_path = parts[0]
+                    # Ensure path starts with .\
+                    if not file_path.startswith('.\\'):
+                        file_path = '.\\' + file_path
                     tag = parts[1]
                     desc = parts[2]
                     # Restore newlines
@@ -419,6 +438,9 @@ class TagFinder:
             # Make path relative to current working directory
             try:
                 rel_path = os.path.relpath(file_path, self.current_working_dir)
+                # Ensure path starts with .\
+                if not rel_path.startswith('.\\'):
+                    rel_path = '.\\' + rel_path
             except:
                 rel_path = file_path
             result[rel_path] = self.tags.get(rel_path, "")
