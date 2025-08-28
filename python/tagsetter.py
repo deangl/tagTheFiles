@@ -50,37 +50,27 @@ class TagSetter:
             return
         
         try:
-            # 使用Windows默认编码
-            with open(self.tag_file, 'r', encoding='gbk') as f:
-                for line in f:
-                    line = line.strip()
-                    if not line:
-                        continue
-                    # 解析每行：路径|标签|描述
-                    parts = line.split('|', 2)
-                    if len(parts) >= 2:
-                        path = parts[0]
-                        tag = parts[1]
-                        desc = parts[2] if len(parts) > 2 else ""
-                        self.all_tags[path] = {'tag': tag, 'desc': desc}
-        except UnicodeDecodeError:
-            # 如果gbk解码失败，尝试utf-8
-            try:
-                with open(self.tag_file, 'r', encoding='utf-8') as f:
-                    for line in f:
-                        line = line.strip()
-                        if not line:
-                            continue
-                        parts = line.split('|', 2)
-                        if len(parts) >= 2:
-                            path = parts[0]
-                            tag = parts[1]
-                            desc = parts[2] if len(parts) > 2 else ""
-                            self.all_tags[path] = {'tag': tag, 'desc': desc}
-            except Exception as e:
-                messagebox.showerror("错误", f"读取标签文件时出错: {str(e)}")
-        except FileNotFoundError:
-            pass
+            # 使用Windows默认编码，与tagfinder.py保持一致
+            with open(self.tag_file, 'r', encoding='mbcs') as f:
+                content = f.read()
+            
+            for line in content.split('\n'):
+                line = line.strip()
+                if not line or not line.endswith('>>>>'):
+                    continue
+                
+                # Remove the >>>> ending
+                line = line[:-4]
+                # Split by the separator
+                parts = line.split('{<>}')
+                if len(parts) >= 3:
+                    file_path = parts[0]
+                    tag = parts[1]
+                    desc = parts[2]
+                    # Restore newlines
+                    tag = tag.replace('@n@', '\n')
+                    desc = desc.replace('@n@', '\n')
+                    self.all_tags[file_path] = {'tag': tag, 'desc': desc}
         except Exception as e:
             messagebox.showerror("错误", f"读取标签文件时出错: {str(e)}")
     
@@ -123,14 +113,19 @@ class TagSetter:
         desc = self.desc_entry.get('1.0', 'end-1c').strip()
         
         # 更新标签信息
-        self.all_tags[self.relative_path] = {'tag': tag, 'desc': desc}
+        # 转义换行符
+        tag_escaped = tag.replace('\n', '@n@')
+        desc_escaped = desc.replace('\n', '@n@')
+        self.all_tags[self.relative_path] = {'tag': tag_escaped, 'desc': desc_escaped}
         
-        # 写入文件
+        # 写入文件，与tagfinder.py保持一致
         try:
             # 使用Windows默认编码
-            with open(self.tag_file, 'w', encoding='gbk') as f:
-                for path, info in self.all_tags.items():
-                    line = f"{path}|{info['tag']}|{info['desc']}\n"
+            with open(self.tag_file, 'w', encoding='mbcs') as f:
+                for path, info in sorted(self.all_tags.items()):
+                    tag_content = info.get('tag', '')
+                    desc_content = info.get('desc', '')
+                    line = f"{path}{{<>}}{tag_content}{{<>}}{desc_content}>>>>\n"
                     f.write(line)
             messagebox.showinfo("成功", "保存成功")
             self.root.destroy()
