@@ -106,11 +106,12 @@ class TagFinder:
         self.last_sorted_column = None
         
         # Prevent double-click on headers from opening files
-        def on_header_click(event):
+        def on_double_click(event):
+            # Identify the region under the cursor
             region = self.list_view.identify_region(event.x, event.y)
             if region == "heading":
-                return "break"
-        self.list_view.bind("<Double-1>", on_header_click)
+                return "break"  # Prevent the default double-click behavior for headers
+        self.list_view.bind("<Double-1>", on_double_click)
         
         # Add scrollbar to list view
         list_scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.list_view.yview)
