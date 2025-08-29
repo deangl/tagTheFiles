@@ -3,6 +3,7 @@ import sys
 import tkinter as tk
 from tkinter import ttk, messagebox
 from pathlib import Path
+from tagutils import find_tag_file, get_relative_path, read_tag_file, write_tag_file
 
 class TagSetter:
     def __init__(self, file_path):
@@ -30,63 +31,17 @@ class TagSetter:
         
     def find_tag_file(self):
         """查找tag文件"""
-        current_path = Path(self.file_path)
-        # 从文件所在目录开始向上查找
-        for parent in [current_path.parent] + list(current_path.parents):
-            tag_file_path = parent / "filetag.tag"
-            if tag_file_path.exists():
-                self.tag_file = tag_file_path
-                # 计算相对路径，以tag文件所在目录为基准
-                try:
-                    # 相对路径应该相对于tag文件所在目录
-                    self.relative_path = os.path.relpath(self.file_path, parent)
-                    # 确保路径使用.\前缀
-                    if not self.relative_path.startswith('.\\'):
-                        # 如果路径不是以.\开头，检查是否需要添加
-                        # 如果路径已经是相对路径，但可能不是相对于当前目录
-                        # 我们想要相对于tag文件所在目录的路径
-                        # 为了与tagfinder.py保持一致，使用.\前缀
-                        self.relative_path = '.\\' + self.relative_path
-                except ValueError:
-                    # 如果在不同驱动器上，使用绝对路径
-                    self.relative_path = self.file_path
-                break
+        self.tag_file = find_tag_file(self.file_path)
+        if self.tag_file:
+            # 计算相对路径，以tag文件所在目录为基准
+            tag_dir = self.tag_file.parent
+            self.relative_path = get_relative_path(self.file_path, tag_dir)
     
     def read_tag_file(self):
         """读取标签文件"""
         if not self.tag_file:
             return
-        
-        try:
-            # 使用Windows默认编码，与tagfinder.py保持一致
-            with open(self.tag_file, 'r', encoding='mbcs') as f:
-                content = f.read()
-            
-            for line in content.split('\n'):
-                line = line.strip()
-                if not line or not line.endswith('>>>>'):
-                    continue
-                
-                # Remove the >>>> ending
-                line = line[:-4]
-                # Split by the separator
-                parts = line.split('{<>}')
-                if len(parts) >= 3:
-                    file_path = parts[0]
-                    # 确保路径以.\开头
-                    if not file_path.startswith('.\\'):
-                        # 如果路径不是以.\开头，检查是否需要转换
-                        # 这里我们假设所有路径都应该相对于tag文件所在目录
-                        # 所以添加.\前缀
-                        file_path = '.\\' + file_path
-                    tag = parts[1]
-                    desc = parts[2]
-                    # Restore newlines
-                    tag = tag.replace('@n@', '\n')
-                    desc = desc.replace('@n@', '\n')
-                    self.all_tags[file_path] = {'tag': tag, 'desc': desc}
-        except Exception as e:
-            messagebox.showerror("错误", f"读取标签文件时出错: {str(e)}")
+        self.all_tags = read_tag_file(self.tag_file)
     
     def create_widgets(self):
         """创建界面组件"""
@@ -149,22 +104,12 @@ class TagSetter:
             relative_path = '.\\' + relative_path
         self.all_tags[relative_path] = {'tag': tag_escaped, 'desc': desc_escaped}
         
-        # 写入文件，与tagfinder.py保持一致
-        try:
-            # 使用Windows默认编码
-            with open(self.tag_file, 'w', encoding='mbcs') as f:
-                for path, info in sorted(self.all_tags.items()):
-                    # 确保路径以.\开头
-                    if not path.startswith('.\\'):
-                        path = '.\\' + path
-                    tag_content = info.get('tag', '')
-                    desc_content = info.get('desc', '')
-                    line = f"{path}{{<>}}{tag_content}{{<>}}{desc_content}>>>>\n"
-                    f.write(line)
+        # 写入文件，使用公共函数
+        if write_tag_file(self.tag_file, self.all_tags):
             messagebox.showinfo("成功", "保存成功")
             self.root.destroy()
-        except Exception as e:
-            messagebox.showerror("错误", f"保存时出错: {str(e)}")
+        else:
+            messagebox.showerror("错误", "保存时出错")
     
     def on_close(self):
         """关闭窗口"""

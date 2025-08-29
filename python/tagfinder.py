@@ -36,6 +36,7 @@ from tkinter import ttk, messagebox, filedialog
 import threading
 import json
 from pathlib import Path
+from tagutils import find_tag_file, get_relative_path, read_tag_file, write_tag_file
 
 class TagFinder:
     def __init__(self, root):
@@ -226,28 +227,18 @@ class TagFinder:
     def get_tags(self):
         self.status_var.set("查询标签列表中")
         tag_file = os.path.join(self.current_working_dir, "filetag.tag")
-        # Read tags and convert all paths to relative paths
-        raw_tags = self.read_tag_file(tag_file)
+        # Read tags using the common function
+        raw_tags = read_tag_file(tag_file)
         self.tags = {}
         for file_path, info in raw_tags.items():
-            # Ensure path starts with .\
+            # Ensure all paths are properly formatted
             if not file_path.startswith('.\\'):
-                # If the path doesn't start with .\, make it relative to the current working directory
+                # Try to make it relative to current working directory
                 try:
-                    # First, try to make it absolute by joining with current working directory
-                    # But since file_path might already be absolute, we need to check
-                    if os.path.isabs(file_path):
-                        # If it's absolute, make it relative
-                        rel_path = os.path.relpath(file_path, self.current_working_dir)
-                        # Ensure it starts with .\
-                        if not rel_path.startswith('.\\'):
-                            rel_path = '.\\' + rel_path
-                    else:
-                        # If it's not absolute, just add .\ prefix
-                        rel_path = '.\\' + file_path
+                    rel_path = get_relative_path(file_path, self.current_working_dir)
                     self.tags[rel_path] = info
                 except:
-                    # If conversion fails, add .\ prefix to the original path
+                    # If conversion fails, add .\ prefix
                     rel_path = '.\\' + file_path
                     self.tags[rel_path] = info
             else:
@@ -255,40 +246,6 @@ class TagFinder:
                 self.tags[file_path] = info
         self.status_var.set("标签加载完成")
     
-    def read_tag_file(self, filename):
-        tags = {}
-        if not os.path.exists(filename):
-            return tags
-        
-        try:
-            # Use Windows default encoding
-            with open(filename, 'r', encoding='mbcs') as f:
-                content = f.read()
-            
-            for line in content.split('\n'):
-                line = line.strip()
-
-                if not line or not line.endswith('>>>>'):
-                    continue
-                
-                # Remove the >>>> ending
-                line = line[:-4]
-                # Split by the separator
-                parts = line.split('{<>}')
-                if len(parts) >= 3:
-                    file_path = parts[0]
-                    # Ensure path starts with .\
-                    if not file_path.startswith('.\\'):
-                        file_path = '.\\' + file_path
-                    tag = parts[1]
-                    desc = parts[2]
-                    # Restore newlines
-                    tag = tag.replace('@n@', '\n')
-                    desc = desc.replace('@n@', '\n')
-                    tags[file_path] = {'tag': tag, 'desc': desc}
-        except Exception as e:
-            messagebox.showerror("错误", f"读取标签文件时出错: {str(e)}")
-        return tags
     
     def check_search(self):
         search_text = self.search_var.get().strip()
@@ -424,20 +381,9 @@ class TagFinder:
         self.status_var.set("保存中")
         tag_file = os.path.join(self.current_working_dir, "filetag.tag")
         
-        try:
-            # Use Windows default encoding
-            with open(tag_file, 'w', encoding='mbcs') as f:
-                for file_path, info in sorted(self.tags.items()):
-                    # Ensure path starts with .\
-                    if not file_path.startswith('.\\'):
-                        file_path = '.\\' + file_path
-                    tag = info.get('tag', '').replace('\n', '@n@')
-                    desc = info.get('desc', '').replace('\n', '@n@')
-                    line = f"{file_path}{{<>}}{tag}{{<>}}{desc}>>>>\n"
-                    f.write(line)
+        if write_tag_file(tag_file, self.tags):
             self.status_var.set("保存完成")
-        except Exception as e:
-            messagebox.showerror("错误", f"保存标签时出错: {str(e)}")
+        else:
             self.status_var.set("保存失败")
     
     def refresh(self):
