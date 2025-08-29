@@ -93,12 +93,16 @@ class TagFinder:
         
         columns = ("shadowID", "路径", "tags")
         self.list_view = ttk.Treeview(list_frame, columns=columns, show="headings", height=20)
-        self.list_view.heading("shadowID", text="shadowID")
-        self.list_view.heading("路径", text="路径")
-        self.list_view.heading("tags", text="tags")
+        # Configure headings with sort functionality
+        self.list_view.heading("shadowID", text="shadowID", command=lambda: self.sort_column("shadowID", False))
+        self.list_view.heading("路径", text="路径", command=lambda: self.sort_column("路径", False))
+        self.list_view.heading("tags", text="tags", command=lambda: self.sort_column("tags", False))
         self.list_view.column("shadowID", width=0, stretch=False)
         self.list_view.column("路径", width=500)
         self.list_view.column("tags", width=200)
+        
+        # Track sort direction for each column
+        self.sort_directions = {"shadowID": False, "路径": False, "tags": False}
         
         # Add scrollbar to list view
         list_scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.list_view.yview)
@@ -410,6 +414,7 @@ class TagFinder:
         
         if write_tag_file(tag_file, self.tags):
             self.status_var.set("保存完成")
+            messagebox.showinfo("成功", "保存成功")
         else:
             self.status_var.set("保存失败")
     
@@ -437,6 +442,41 @@ class TagFinder:
         
         self.status_var.set("合并数据完成")
         return result
+    
+    def sort_column(self, column, reverse):
+        """Sort treeview by column when heading is clicked"""
+        # Get all items from the treeview
+        items = [(self.list_view.set(item, column), item) for item in self.list_view.get_children('')]
+        
+        # Sort the items
+        items.sort(reverse=reverse)
+        
+        # Rearrange items in sorted positions
+        for index, (val, item) in enumerate(items):
+            self.list_view.move(item, '', index)
+        
+        # Reverse sort direction for next time
+        self.sort_directions[column] = not reverse
+        
+        # Update heading to show sort direction
+        self.update_heading_arrow(column, not reverse)
+    
+    def update_heading_arrow(self, column, descending):
+        """Update heading to show sort direction arrow"""
+        arrow = " ↓" if descending else " ↑"
+        # Reset all headings
+        for col in self.list_view['columns']:
+            current_text = self.list_view.heading(col)['text']
+            # Remove any existing arrow
+            if ' ↓' in current_text or ' ↑' in current_text:
+                current_text = current_text.split(' ')[0]
+            self.list_view.heading(col, text=current_text)
+        
+        # Add arrow to the current column
+        current_text = self.list_view.heading(column)['text']
+        if ' ↓' in current_text or ' ↑' in current_text:
+            current_text = current_text.split(' ')[0]
+        self.list_view.heading(column, text=current_text + arrow)
 
 if __name__ == "__main__":
     root = tk.Tk()
