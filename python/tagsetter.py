@@ -76,7 +76,8 @@ class TagSetter:
             self.desc_entry.insert('1.0', tag_info['desc'])
         
         # 保存按钮
-        ttk.Button(main_frame, text="保存", command=self.save).pack(pady=20)
+        self.save_button = ttk.Button(main_frame, text="保存", command=self.save)
+        self.save_button.pack(pady=20)
         
         # tag文件位置 - 在同一行
         tag_file_frame = ttk.Frame(main_frame)
@@ -87,6 +88,8 @@ class TagSetter:
         # 绑定事件
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.bind('<Escape>', lambda e: self.on_close())
+        # 绑定回车键到保存按钮
+        self.root.bind('<Return>', lambda e: self.save())
     
     def save(self):
         """保存标签信息"""
