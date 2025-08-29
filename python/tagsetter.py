@@ -88,8 +88,11 @@ class TagSetter:
         # 绑定事件
         self.root.protocol("WM_DELETE_WINDOW", self.on_close)
         self.root.bind('<Escape>', lambda e: self.on_close())
-        # 绑定回车键到保存按钮
-        self.root.bind('<Return>', lambda e: self.save())
+        # 绑定回车键到当前焦点按钮
+        self.root.bind('<Return>', self.on_return_pressed)
+        
+        # 为按钮绑定焦点事件
+        self.save_button.bind('<FocusIn>', lambda e: self.set_current_focused_button(self.save_button))
     
     def save(self):
         """保存标签信息"""
@@ -123,6 +126,19 @@ class TagSetter:
         """Move focus to next widget on Tab key press"""
         event.widget.tk_focusNext().focus()
         return "break"  # Prevent default Tab behavior
+    
+    def set_current_focused_button(self, button):
+        """Set the currently focused button"""
+        self.current_focused_button = button
+    
+    def on_return_pressed(self, event):
+        """Handle Return key press to trigger the focused button's action"""
+        # Get the currently focused widget
+        focused_widget = self.root.focus_get()
+        # If it's a button, invoke its command
+        if isinstance(focused_widget, ttk.Button):
+            focused_widget.invoke()
+        return "break"
     
     def run(self):
         """运行应用程序"""

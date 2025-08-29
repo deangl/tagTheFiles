@@ -74,7 +74,10 @@ class TagFinder:
         self.root.bind('<Alt-d>', lambda event: self.focus_search_entry())
         self.root.bind('<Alt-D>', lambda event: self.focus_search_entry())
         
-        ttk.Button(search_frame, text="查找", command=self.check_search).grid(row=0, column=2, padx=5)
+        self.search_button = ttk.Button(search_frame, text="查找", command=self.check_search)
+        self.search_button.grid(row=0, column=2, padx=5)
+        # Bind focus event
+        self.search_button.bind('<FocusIn>', lambda e: self.set_current_focused_button(self.search_button))
         
         ttk.Label(search_frame, text="查找文件夹:").grid(row=0, column=3, padx=(20, 5))
         self.dir_label = ttk.Label(search_frame, text=self.current_working_dir)
@@ -153,9 +156,17 @@ class TagFinder:
         # Buttons
         button_frame = ttk.Frame(details_frame)
         button_frame.pack(pady=(10, 0))
-        ttk.Button(button_frame, text="编辑/取消", command=self.toggle_edit).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="保存", command=self.save).pack(side=tk.LEFT, padx=5)
-        ttk.Button(button_frame, text="刷新文件", command=self.refresh).pack(side=tk.LEFT, padx=5)
+        self.edit_button = ttk.Button(button_frame, text="编辑/取消", command=self.toggle_edit)
+        self.edit_button.pack(side=tk.LEFT, padx=5)
+        self.save_button = ttk.Button(button_frame, text="保存", command=self.save)
+        self.save_button.pack(side=tk.LEFT, padx=5)
+        self.refresh_button = ttk.Button(button_frame, text="刷新文件", command=self.refresh)
+        self.refresh_button.pack(side=tk.LEFT, padx=5)
+        
+        # Bind focus events to track the currently focused button
+        self.edit_button.bind('<FocusIn>', lambda e: self.set_current_focused_button(self.edit_button))
+        self.save_button.bind('<FocusIn>', lambda e: self.set_current_focused_button(self.save_button))
+        self.refresh_button.bind('<FocusIn>', lambda e: self.set_current_focused_button(self.refresh_button))
         
         # Status at the bottom
         status_frame = ttk.Frame(self.root)
@@ -167,6 +178,9 @@ class TagFinder:
         
         # Set initial read-only state
         self.lock_edit()
+        
+        # Bind Return key to trigger focused button
+        self.root.bind('<Return>', self.on_return_pressed)
     
     def lock_edit(self):
         self.tag_text.config(state=tk.DISABLED, background='#f0f0f0')
@@ -196,6 +210,19 @@ class TagFinder:
         """Move focus to next widget on Tab key press"""
         event.widget.tk_focusNext().focus()
         return "break"  # Prevent default Tab behavior
+    
+    def set_current_focused_button(self, button):
+        """Set the currently focused button"""
+        self.current_focused_button = button
+    
+    def on_return_pressed(self, event):
+        """Handle Return key press to trigger the focused button's action"""
+        # Get the currently focused widget
+        focused_widget = self.root.focus_get()
+        # If it's a button, invoke its command
+        if isinstance(focused_widget, ttk.Button):
+            focused_widget.invoke()
+        return "break"
     
     def toggle_edit(self):
         if self.r_only:
