@@ -94,15 +94,23 @@ class TagFinder:
         columns = ("shadowID", "路径", "tags")
         self.list_view = ttk.Treeview(list_frame, columns=columns, show="headings", height=20)
         # Configure headings with sort functionality
-        self.list_view.heading("shadowID", text="shadowID", command=lambda: self.sort_column("shadowID", False))
-        self.list_view.heading("路径", text="路径", command=lambda: self.sort_column("路径", False))
-        self.list_view.heading("tags", text="tags", command=lambda: self.sort_column("tags", False))
+        self.list_view.heading("shadowID", text="shadowID", command=lambda: self.toggle_sort_column("shadowID"))
+        self.list_view.heading("路径", text="路径", command=lambda: self.toggle_sort_column("路径"))
+        self.list_view.heading("tags", text="tags", command=lambda: self.toggle_sort_column("tags"))
         self.list_view.column("shadowID", width=0, stretch=False)
         self.list_view.column("路径", width=500)
         self.list_view.column("tags", width=200)
         
-        # Track sort direction for each column
-        self.sort_directions = {"shadowID": False, "路径": False, "tags": False}
+        # Track sort state for each column: None (unsorted), True (ascending), False (descending)
+        self.sort_states = {"shadowID": None, "路径": None, "tags": None}
+        self.last_sorted_column = None
+        
+        # Prevent double-click on headers from opening files
+        def on_header_click(event):
+            region = self.list_view.identify_region(event.x, event.y)
+            if region == "heading":
+                return "break"
+        self.list_view.bind("<Double-1>", on_header_click)
         
         # Add scrollbar to list view
         list_scrollbar = ttk.Scrollbar(list_frame, orient=tk.VERTICAL, command=self.list_view.yview)
@@ -443,8 +451,43 @@ class TagFinder:
         self.status_var.set("合并数据完成")
         return result
     
+    def toggle_sort_column(self, column):
+        """Toggle sort state between None -> ascending -> descending -> None"""
+        # If clicking a different column, reset other columns to unsorted
+        if self.last_sorted_column != column:
+            # Reset all other columns to None
+            for col in self.sort_states:
+                if col != column:
+                    self.sort_states[col] = None
+                    # Remove arrow from other columns
+                    current_text = self.list_view.heading(col)['text']
+                    if ' ↓' in current_text or ' ↑' in current_text:
+                        current_text = current_text.split(' ')[0]
+                        self.list_view.heading(col, text=current_text)
+        
+        # Cycle through sort states
+        if self.sort_states[column] is None:
+            # First click: sort ascending
+            self.sort_column(column, False)
+            self.sort_states[column] = True
+        elif self.sort_states[column] == True:
+            # Second click: sort descending
+            self.sort_column(column, True)
+            self.sort_states[column] = False
+        else:
+            # Third click: reset to original order (by shadowID)
+            self.reset_to_original_order()
+            self.sort_states[column] = None
+            # Remove arrow
+            current_text = self.list_view.heading(column)['text']
+            if ' ↓' in current_text or ' ↑' in current_text:
+                current_text = current_text.split(' ')[0]
+                self.list_view.heading(column, text=current_text)
+        
+        self.last_sorted_column = column
+    
     def sort_column(self, column, reverse):
-        """Sort treeview by column when heading is clicked"""
+        """Sort treeview by column"""
         # Get all items from the treeview
         items = [(self.list_view.set(item, column), item) for item in self.list_view.get_children('')]
         
@@ -455,24 +498,23 @@ class TagFinder:
         for index, (val, item) in enumerate(items):
             self.list_view.move(item, '', index)
         
-        # Reverse sort direction for next time
-        self.sort_directions[column] = not reverse
-        
         # Update heading to show sort direction
-        self.update_heading_arrow(column, not reverse)
+        self.update_heading_arrow(column, reverse)
+    
+    def reset_to_original_order(self):
+        """Reset to original order by shadowID"""
+        # Get all items and sort by shadowID
+        items = [(int(self.list_view.set(item, "shadowID")), item) for item in self.list_view.get_children('')]
+        items.sort()
+        
+        # Rearrange items in original positions
+        for index, (val, item) in enumerate(items):
+            self.list_view.move(item, '', index)
     
     def update_heading_arrow(self, column, descending):
         """Update heading to show sort direction arrow"""
         arrow = " ↓" if descending else " ↑"
-        # Reset all headings
-        for col in self.list_view['columns']:
-            current_text = self.list_view.heading(col)['text']
-            # Remove any existing arrow
-            if ' ↓' in current_text or ' ↑' in current_text:
-                current_text = current_text.split(' ')[0]
-            self.list_view.heading(col, text=current_text)
-        
-        # Add arrow to the current column
+        # Remove any existing arrow
         current_text = self.list_view.heading(column)['text']
         if ' ↓' in current_text or ' ↑' in current_text:
             current_text = current_text.split(' ')[0]
