@@ -99,16 +99,13 @@ class TagSetter:
         tag = self.tag_entry.get('1.0', 'end-1c').strip()
         desc = self.desc_entry.get('1.0', 'end-1c').strip()
         
-        # 更新标签信息
-        # 转义换行符
-        tag_escaped = tag.replace('\n', '@n@')
-        desc_escaped = desc.replace('\n', '@n@')
-        
         # 确保相对路径以.\开头
         relative_path = self.relative_path
         if not relative_path.startswith('.\\'):
             relative_path = '.\\' + relative_path
-        self.all_tags[relative_path] = {'tag': tag_escaped, 'desc': desc_escaped}
+        
+        # 直接存储原始内容，write_tag_file 会处理转义
+        self.all_tags[relative_path] = {'tag': tag, 'desc': desc}
         
         # 写入文件，使用公共函数
         if write_tag_file(self.tag_file, self.all_tags):
