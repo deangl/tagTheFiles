@@ -55,10 +55,8 @@ Hotkey("!d", FocusSearchEntry)
 
 FocusSearchEntry(*) {
     try {
-        ; Ensure the GUI is active
-        myGui.Focus()
-        ; Focus on the search edit box
-        ogcEditToSearch.Focus()
+	ogcEditToSearch.Focus()
+	msgbox('tosearch focused')
         ; Select all text in the edit box
         ogcEditToSearch.Value := ogcEditToSearch.Value
         Send("{Home}+{End}")
