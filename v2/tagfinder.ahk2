@@ -50,18 +50,18 @@ ogcButton.OnEvent("Click", Refresh.Bind("Normal"))
 
 myGui.Show()
 
-; Add hotkey to focus on search edit box and select all text when Alt+D is pressed
-myGui.OnEvent("Focus", (*) => myGui.Focus()) ; Ensure the GUI can receive focus
-ogcEditToSearch.OnEvent("Focus", (*) => ogcEditToSearch.SetFont(, "Norm")) ; Reset font when focused
-
-; Register Alt+D hotkey
+; Register Alt+D hotkey to focus on search edit box and select all text
 Hotkey("!d", FocusSearchEntry)
 
 FocusSearchEntry(*) {
     try {
+        ; Ensure the GUI is active
+        myGui.Focus()
+        ; Focus on the search edit box
         ogcEditToSearch.Focus()
-        ogcEditToSearch.Value := ogcEditToSearch.Value ; This ensures the text is selected
-        Send("{Home}+{End}") ; Select all text
+        ; Select all text in the edit box
+        ogcEditToSearch.Value := ogcEditToSearch.Value
+        Send("{Home}+{End}")
     }
 }
 
