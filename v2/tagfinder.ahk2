@@ -51,14 +51,12 @@ ogcButton.OnEvent("Click", Refresh.Bind("Normal"))
 myGui.Show()
 
 ; Set up the hotkey to only work when the GUI is active
-HotIfWinActive ("ahk_id " myGui.hwnd)
-Hotkey("!d", FocusSearchEntry)
-HotIfWinActive
 
+;在查找框按“下” focus到ListView并选择第一条
 Hotif listFocused
 Hotkey("down", FocusListView)
 HotIf
-; Reset the context
+
 listFocused(*){
 	return	ControlGetFocus("A") == ogcEditToSearch.hwnd
 }
@@ -68,6 +66,11 @@ FocusListView(*){
 		send "{Down}"
 	}
 }
+
+; 按alt+d focus到查找框
+HotIfWinActive ("ahk_id " myGui.hwnd)
+Hotkey("!d", FocusSearchEntry)
+HotIfWinActive
 
 FocusSearchEntry(*) {
 	try {
