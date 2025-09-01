@@ -312,8 +312,9 @@ class TagFinder:
         self.status_var.set("查询完成")
     
     def match_tag(self, search_str, where):
-        where_str = str(where)
-        or_list = search_str.split('|')
+        # Convert both search string and where to lowercase for case-insensitive matching
+        where_str = str(where).lower()
+        or_list = search_str.lower().split('|')
         for or_item in or_list:
             and_list = or_item.split('&')
             match_all = True
