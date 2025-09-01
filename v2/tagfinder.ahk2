@@ -51,12 +51,26 @@ ogcButton.OnEvent("Click", Refresh.Bind("Normal"))
 myGui.Show()
 
 ; Set up the hotkey to only work when the GUI is active
-HotIfWinActive(myGui.Hwnd)
+HotIfWinActive ("ahk_id " myGui.hwnd)
 Hotkey("!d", FocusSearchEntry)
-HotIfWinActive() ; Reset the context
+HotIfWinActive
+
+Hotif listFocused
+Hotkey("down", FocusListView)
+HotIf
+; Reset the context
+listFocused(*){
+	return	ControlGetFocus("A") == ogcEditToSearch.hwnd
+}
+FocusListView(*){
+	try{
+		ogcListViewshadowIDtags.focus()
+		send "{Down}"
+	}
+}
 
 FocusSearchEntry(*) {
-    try {
+	try {
         ; Focus on the search edit box
         ogcEditToSearch.Focus()
         ; Select all text in the edit box
