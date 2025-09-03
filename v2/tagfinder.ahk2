@@ -1,3 +1,11 @@
+; 标签查找器 - 用于通过标签搜索和管理文件
+; 功能：
+;   1. 支持使用 & 和 | 运算符组合搜索标签
+;   2. 显示文件路径、标签和描述信息
+;   3. 支持编辑和保存标签信息
+;   4. 双击打开文件，右键菜单打开所在文件夹
+;   5. 使用 Everything 或系统命令快速获取文件列表
+
 #SingleInstance Off
 #Include ".\toolFunc.ahk2"
 #Include ".\tagfileops.ahk2"
