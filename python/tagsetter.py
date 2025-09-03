@@ -1,3 +1,4 @@
+# Tag Setter Application - 用于设置文件的标签和描述信息
 import os
 import sys
 import tkinter as tk
