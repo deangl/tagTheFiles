@@ -1,4 +1,42 @@
-# Tag Setter Application - 用于设置文件的标签和描述信息
+"""
+Tag Setter Application
+
+一个用于管理和设置文件标签及描述信息的图形界面工具。
+主要功能：
+1. 通过文件路径参数启动，自动定位关联的 filetag.tag 文件
+2. 提供界面用于编辑文件的标签（Tags）和详细说明（Description）
+3. 支持保存修改到 tag 文件中
+4. 支持键盘导航：Tab 键切换焦点，Enter 键触发按钮操作
+
+具体用法示例：
+1. 通过命令行直接调用（最常见用法）：
+   python tagsetter.py "C:\\项目\\文档.txt"
+   
+2. 在文件管理器中对文件右键选择"设置标签"（需要与文件管理器集成）
+   
+3. 与其他脚本配合使用：
+   import subprocess
+   subprocess.run(['python', 'tagsetter.py', 'file_path.txt'])
+
+4. 批量处理文件（循环调用）：
+   for file in files:
+       subprocess.run(['python', 'tagsetter.py', file])
+
+界面操作说明：
+- 标签框：输入以空格分隔的多个标签，例如：重要 项目 待审核
+- 说明框：输入文件的详细描述信息，支持多行文本
+- 保存按钮：点击保存或按Enter键（当按钮获得焦点时）
+- 按Tab键在不同控件间切换焦点
+- 按Escape键退出程序
+
+依赖模块：
+- tkinter: 用于构建图形用户界面
+- pathlib: 用于路径操作
+- tagutils: 自定义工具函数，处理 tag 文件的读写操作
+
+文件格式：
+tag 文件使用特定格式存储文件的标签和描述信息，支持转义字符处理
+"""
 import os
 import sys
 import tkinter as tk
