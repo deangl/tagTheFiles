@@ -325,13 +325,3 @@ makeList(){
 	ogcTextStats.Value := "合并数据完成"
 	return rslt
 }
-
-
-
-
-
-
-
-
-
-
