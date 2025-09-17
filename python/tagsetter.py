@@ -70,17 +70,21 @@ class TagSetter:
         
     def find_tag_file(self):
         """查找tag文件"""
-        self.tag_file = find_tag_file(self.file_path)
-        if self.tag_file:
+        tag_file_path = find_tag_file(self.file_path)
+        if tag_file_path:
+            # Convert to Path object
+            self.tag_file = Path(tag_file_path)
             # 计算相对路径，以tag文件所在目录为基准
             tag_dir = self.tag_file.parent
             self.relative_path = get_relative_path(self.file_path, tag_dir)
+        else:
+            self.tag_file = None
     
     def read_tag_file(self):
         """读取标签文件"""
         if not self.tag_file:
             return
-        self.all_tags = read_tag_file(self.tag_file)
+        self.all_tags = read_tag_file(str(self.tag_file))
     
     def create_widgets(self):
         """创建界面组件"""
@@ -147,7 +151,7 @@ class TagSetter:
         self.all_tags[relative_path] = {'tag': tag, 'desc': desc}
         
         # 写入文件，使用公共函数
-        if write_tag_file(self.tag_file, self.all_tags):
+        if write_tag_file(str(self.tag_file), self.all_tags):
             messagebox.showinfo("成功", "保存成功")
             self.root.destroy()
         else:
