@@ -423,6 +423,7 @@ class TagFinder:
             # Convert Windows path separators to current platform's separators
             rel_path = rel_path.replace('\\', os.sep)
             abs_path = os.path.join(self.current_working_dir, rel_path)
+            print(abs_path)
             try:
                 # Use platform-appropriate way to open files
                 if sys.platform == "win32":
