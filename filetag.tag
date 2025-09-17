@@ -5,6 +5,7 @@
 .\dist\tagFinder.exe{<>}1{<>}23>>>>
 .\dist\tagSetter.exe{<>}OK{<>}这是一个Setter>>>>
 .\filetag.tag{<>}t1{<>}>>>>
+.\python/tagsetter.py{<>}tag{<>}>>>>
 .\python\tagsetter.py{<>}OK{<>}可以,太可以.@n@回车也可以？@n@好呀。>>>>
 .\tagfileops.ahk{<>}不懂{<>}>>>>
 .\toolFunc.ahk{<>}tool{<>}全是tool>>>>

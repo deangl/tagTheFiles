@@ -48,7 +48,7 @@ class TagSetter:
     def __init__(self, file_path):
         self.root = tk.Tk()
         self.root.title("Tag Setter")
-        self.root.geometry("500x600")
+        self.root.geometry("1000x1200")
         
         self.file_path = file_path
         self.tag_file = None
