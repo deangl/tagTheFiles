@@ -68,7 +68,18 @@ class TagFinder:
     def __init__(self, root):
         self.root = root
         self.root.title("Tag Finder")
-        self.root.geometry("1200x800")
+        
+        # Get screen dimensions and set window size to 80% of screen size
+        screen_width = self.root.winfo_screenwidth()
+        screen_height = self.root.winfo_screenheight()
+        self.window_width = int(screen_width * 0.8)
+        window_height = int(screen_height * 0.8)
+        self.root.geometry(f"{self.window_width}x{window_height}")
+        
+        # Center the window on the screen
+        x = (screen_width - self.window_width) // 2
+        y = (screen_height - window_height) // 2
+        self.root.geometry(f"+{x}+{y}")
         
         # Variables
         self.r_only = True
@@ -133,8 +144,9 @@ class TagFinder:
         self.list_view.heading("路径", text="路径", command=lambda: self.toggle_sort_column("路径"))
         self.list_view.heading("tags", text="tags", command=lambda: self.toggle_sort_column("tags"))
         self.list_view.column("shadowID", width=0, stretch=False)
-        self.list_view.column("路径", width=500)
-        self.list_view.column("tags", width=200)
+        # Set column widths as percentages of the window width
+        self.list_view.column("路径", width=int(self.window_width * 0.6), stretch=True)
+        self.list_view.column("tags", width=int(self.window_width * 0.2), stretch=True)
         
         # Track sort state for each column: None (unsorted), True (ascending), False (descending)
         self.sort_states = {"shadowID": None, "路径": None, "tags": None}
