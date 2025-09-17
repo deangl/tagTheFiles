@@ -32,7 +32,7 @@
 import os
 import re
 import tkinter as tk
-from tkinter import ttk, messagebox, filedialog
+from tkinter import ttk, messagebox, filedialog, font
 import threading
 import json
 from pathlib import Path
@@ -91,15 +91,17 @@ class TagFinder:
         list_frame = ttk.Frame(main_frame)
         list_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
         
-        # Create a font with larger size
-        self.treeview_font = tk.font.nametofont("TkDefaultFont").copy()
-        self.treeview_font.config(size=12)  # Increase the font size to increase row height
-        
         columns = ("shadowID", "路径", "tags")
-        style = ttk.Style()
-        style.configure("Treeview", font=self.treeview_font, rowheight=self.treeview_font.metrics()['linespace'])
+        self.list_view = ttk.Treeview(list_frame, columns=columns, show="headings", height=20)
         
-        self.list_view = ttk.Treeview(list_frame, columns=columns, show="headings", height=20, style="Treeview")
+        # Configure font to increase row height
+        default_font = font.nametofont("TkDefaultFont")
+        treeview_font = default_font.copy()
+        treeview_font.config(size=12)
+        style = ttk.Style()
+        style.configure("Treeview", font=treeview_font)
+        # Set row height based on font metrics
+        style.configure("Treeview", rowheight=treeview_font.metrics()['linespace'])
         # Configure headings with sort functionality
         self.list_view.heading("shadowID", text="shadowID", command=lambda: self.toggle_sort_column("shadowID"))
         self.list_view.heading("路径", text="路径", command=lambda: self.toggle_sort_column("路径"))
