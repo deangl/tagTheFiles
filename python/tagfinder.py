@@ -391,7 +391,9 @@ class TagFinder:
         values = item['values']
         if len(values) >= 3:
             file_path = values[1]
-            self.file_var.set(file_path)  # Path
+            # Convert to current platform's path separators for display
+            display_path = file_path.replace('\\', os.sep)
+            self.file_var.set(display_path)  # Path
             
             # Get the actual tag and description from the tags dictionary
             # The file path in the list is relative to the working directory
@@ -418,6 +420,8 @@ class TagFinder:
         if len(values) >= 2:
             # The path in the list is relative, so we need to make it absolute
             rel_path = values[1]
+            # Convert Windows path separators to current platform's separators
+            rel_path = rel_path.replace('\\', os.sep)
             abs_path = os.path.join(self.current_working_dir, rel_path)
             try:
                 # Use platform-appropriate way to open files
@@ -428,10 +432,9 @@ class TagFinder:
                     subprocess.call(("open", abs_path))
                 else:
                     import subprocess
-                    print(abs_path)
                     subprocess.call(("xdg-open", abs_path))
-            except:
-                messagebox.showerror("错误", f"无法打开文件: {abs_path}")
+            except Exception as e:
+                messagebox.showerror("错误", f"无法打开文件: {abs_path}\n错误信息: {str(e)}")
     
     def on_right_click(self, event):
         item = self.list_view.identify_row(event.y)
@@ -444,6 +447,8 @@ class TagFinder:
         if len(values) >= 2:
             # The path in the list is relative, so we need to make it absolute
             rel_path = values[1]
+            # Convert Windows path separators to current platform's separators
+            rel_path = rel_path.replace('\\', os.sep)
             abs_path = os.path.join(self.current_working_dir, rel_path)
             folder_path = os.path.dirname(abs_path)
             try:
@@ -456,8 +461,8 @@ class TagFinder:
                 else:
                     import subprocess
                     subprocess.call(("xdg-open", folder_path))
-            except:
-                messagebox.showerror("错误", f"无法打开文件夹: {folder_path}")
+            except Exception as e:
+                messagebox.showerror("错误", f"无法打开文件夹: {folder_path}\n错误信息: {str(e)}")
     
     def save(self):
         self.lock_edit()
@@ -466,11 +471,18 @@ class TagFinder:
         desc = self.desc_text.get(1.0, tk.END).strip()
         
         if file_path:
+            # Convert to Windows-style path for storage (using backslashes)
+            # First, convert any platform separators to the standard Windows format
+            file_path = file_path.replace('/', '\\')
             # Ensure the path starts with .\
             if not file_path.startswith('.\\'):
                 try:
                     # Make it relative to current working directory
-                    rel_path = os.path.relpath(file_path, self.current_working_dir)
+                    # Convert to absolute path first
+                    abs_path = os.path.join(self.current_working_dir, file_path)
+                    rel_path = os.path.relpath(abs_path, self.current_working_dir)
+                    # Convert to Windows-style path
+                    rel_path = rel_path.replace('/', '\\')
                     # Ensure it starts with .\
                     if not rel_path.startswith('.\\'):
                         rel_path = '.\\' + rel_path
