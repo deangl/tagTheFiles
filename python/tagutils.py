@@ -8,6 +8,7 @@ def find_tag_file(file_path):
     # 从文件所在目录开始向上查找
     for parent in [current_path.parent] + list(current_path.parents):
         tag_file_path = parent / "filetag.tag"
+        print(tag_file_path)
         if tag_file_path.exists():
             return tag_file_path
     return None
@@ -32,7 +33,7 @@ def read_tag_file(filename):
     
     try:
         # Use Windows default encoding
-        with open(filename, 'r', encoding='mbcs') as f:
+        with open(filename, 'r', encoding='gbk') as f:
             content = f.read()
         
         for line in content.split('\n'):
@@ -63,7 +64,7 @@ def write_tag_file(filename, tags):
     """写入标签文件"""
     try:
         # Use Windows default encoding
-        with open(filename, 'w', encoding='mbcs') as f:
+        with open(filename, 'w', encoding='gbk') as f:
             for file_path, info in sorted(tags.items()):
                 # Ensure path starts with .\
                 if not file_path.startswith('.\\'):
