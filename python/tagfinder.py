@@ -31,12 +31,38 @@
 
 import os
 import re
+import sys
 import tkinter as tk
 from tkinter import ttk, messagebox, filedialog, font
 import threading
 import json
 from pathlib import Path
-from tagutils import find_tag_file, get_relative_path, read_tag_file, write_tag_file
+
+# Handle imports for both development and packaged environments
+try:
+    from tagutils import find_tag_file, get_relative_path, read_tag_file, write_tag_file
+except ImportError:
+    # When packaged, the tagutils module will be in the same directory as the executable
+    # Add the directory containing the executable to the path
+    if getattr(sys, 'frozen', False):
+        # Running in a bundle
+        application_path = os.path.dirname(sys.executable)
+    else:
+        # Running in normal Python environment
+        application_path = os.path.dirname(os.path.abspath(__file__))
+    
+    # Add to Python path
+    if application_path not in sys.path:
+        sys.path.insert(0, application_path)
+    
+    try:
+        from tagutils import find_tag_file, get_relative_path, read_tag_file, write_tag_file
+    except ImportError:
+        # Try to import from the python directory
+        python_dir = os.path.join(os.path.dirname(application_path), 'python')
+        if python_dir not in sys.path:
+            sys.path.insert(0, python_dir)
+        from tagutils import find_tag_file, get_relative_path, read_tag_file, write_tag_file
 
 class TagFinder:
     def __init__(self, root):
@@ -382,7 +408,15 @@ class TagFinder:
             rel_path = values[1]
             abs_path = os.path.join(self.current_working_dir, rel_path)
             try:
-                os.startfile(abs_path)
+                # Use platform-appropriate way to open files
+                if sys.platform == "win32":
+                    os.startfile(abs_path)
+                elif sys.platform == "darwin":
+                    import subprocess
+                    subprocess.call(("open", abs_path))
+                else:
+                    import subprocess
+                    subprocess.call(("xdg-open", abs_path))
             except:
                 messagebox.showerror("错误", f"无法打开文件: {abs_path}")
     
@@ -400,7 +434,15 @@ class TagFinder:
             abs_path = os.path.join(self.current_working_dir, rel_path)
             folder_path = os.path.dirname(abs_path)
             try:
-                os.startfile(folder_path)
+                # Use platform-appropriate way to open folders
+                if sys.platform == "win32":
+                    os.startfile(folder_path)
+                elif sys.platform == "darwin":
+                    import subprocess
+                    subprocess.call(("open", folder_path))
+                else:
+                    import subprocess
+                    subprocess.call(("xdg-open", folder_path))
             except:
                 messagebox.showerror("错误", f"无法打开文件夹: {folder_path}")
     
