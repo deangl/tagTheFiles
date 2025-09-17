@@ -4,19 +4,60 @@ from tkinter import messagebox
 
 def find_tag_file(file_path):
     """查找tag文件"""
-    current_path = Path(file_path)
+    print(f"find_tag_file called with: {file_path}")
+    
+    # Convert to absolute path first
+    if not os.path.isabs(file_path):
+        # If it's a relative path, make it absolute
+        abs_file_path = os.path.abspath(file_path)
+        print(f"Converted to absolute path: {abs_file_path}")
+    else:
+        abs_file_path = file_path
+        print(f"Already absolute path: {abs_file_path}")
+    
+    current_path = Path(abs_file_path)
+    
+    # Check if the path exists
+    if not current_path.exists():
+        print(f"Path does not exist: {current_path}")
+        return None
+    
+    # If it's a file, start from its parent directory
+    # If it's a directory, start from the directory itself
+    if current_path.is_file():
+        start_path = current_path.parent
+        print(f"Starting from file's parent directory: {start_path}")
+    else:
+        start_path = current_path
+        print(f"Starting from directory: {start_path}")
+    
     # 从文件所在目录开始向上查找
-    for parent in [current_path.parent] + list(current_path.parents):
+    for parent in [start_path] + list(start_path.parents):
         tag_file_path = parent / "filetag.tag"
-        print(tag_file_path)
+        print(f"Checking: {tag_file_path}")
         if tag_file_path.exists():
-            return tag_file_path
+            print(f"Found tag file: {tag_file_path}")
+            return str(tag_file_path)
+        else:
+            print(f"Tag file not found at: {tag_file_path}")
+    print("No tag file found in any parent directory")
     return None
 
 def get_relative_path(file_path, base_dir):
     """获取相对于base_dir的路径，确保以.\开头"""
     try:
-        rel_path = os.path.relpath(file_path, base_dir)
+        # Make sure both paths are absolute
+        if not os.path.isabs(file_path):
+            abs_file_path = os.path.abspath(file_path)
+        else:
+            abs_file_path = file_path
+        
+        if not os.path.isabs(base_dir):
+            abs_base_dir = os.path.abspath(base_dir)
+        else:
+            abs_base_dir = base_dir
+        
+        rel_path = os.path.relpath(abs_file_path, abs_base_dir)
         # 确保路径以.\开头
         if not rel_path.startswith('.\\'):
             rel_path = '.\\' + rel_path
