@@ -428,6 +428,7 @@ class TagFinder:
                     subprocess.call(("open", abs_path))
                 else:
                     import subprocess
+                    print(abs_path)
                     subprocess.call(("xdg-open", abs_path))
             except:
                 messagebox.showerror("错误", f"无法打开文件: {abs_path}")
